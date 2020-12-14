@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
         name='uppaal-py',
-        version='0.0.1',
+        version='0.0.2',
         description='UPPAAL wrapper for Python',
         packages=find_packages(),
         long_description=open('README.md').read(),
