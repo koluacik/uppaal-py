@@ -10,12 +10,10 @@ Via pip:
 pip install uppaal-py
 ```
 
-Or you can just install the dependencies and copy the dir `uppaalpy` into your project.
-
 ## Usage
 ```Python
->>> from uppaalpy import nta
->>> my_nta = nta.NTA.fromXML('test.xml')
+>>> from uppaalpy import core
+>>> my_nta = core.NTA.fromXML('test.xml')
 >>> my_nta.to_file('test_new.xml', pretty = True)
 ```
 
