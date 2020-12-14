@@ -143,6 +143,8 @@ class Template:
         kw['declaration'] = Declaration.from_element(et.find('declaration'))
         kw['graph'] = nx.MultiDiGraph()
 
+        kw['graph'].counter = 0
+
         t_name = kw['name'].name
 
         for l in et.findall('location'):
@@ -157,8 +159,9 @@ class Template:
 
         for i, t in enumerate(et.findall('transition')):
             trans = Transition.from_element(t, i)
-            kw['graph'].add_edge((t_name, trans.source), (t_name, trans.target),
-                    obj = trans)
+            add_edge_wrapper(kw['graph'], t_name, trans)
+            #kw['graph'].add_edge((t_name, trans.source), (t_name, trans.target),
+            #       obj = trans)
 
         return cls(**kw)
 
@@ -180,11 +183,12 @@ class Template:
     def get_edges(self):
         """Return a list of transitions from the multidigraph."""
         edges = sorted(self.graph.edges(data = True),
-                key = lambda x: x[2]['obj']._order_in_file)
+                key = lambda x: x[2]['obj'].edge_id)
         return [data['obj'] for source, target, data in edges]
 
     def get_initial_location(self):
         return graph.initial_location
+
 
     def _graph_to_element(self):
         """Convert the multidigraph to an Element. Called from Template.to_element."""
@@ -210,7 +214,7 @@ class Template:
         print()
         [edge[2]['obj']._display() for edge in 
                 sorted(self.graph.edges(data = True),
-                    key = lambda x: x[2]['obj']._order_in_file)]
+                    key = lambda x: x[2]['obj'].edge_id)]
 
 class Node:
     """Abstract class for nodes of the multidigraph in TA templates.
@@ -379,11 +383,13 @@ class Transition:
         comments: Label object with kind 'comments'. See UPPAAL 
             documentation.
         nails: List of Nail objects.
-        _order_in_file: Not relevant to UPPAAL. Unlike locations and
-            branchpoints, edges in UPPAAL are not ordered by a particular
-            attribute. For this reason we enumerate them while iterating over
-            the Element object to preserve the order of the edges in the file.
-            The default value of this attribute is -1.
+        edge_id: Not relevant to UPPAAL. Unlike locations and
+            branchpoints, edges in UPPAAL are not uniquely identified by a
+            certain attribute. For this reason we enumerate them while iterating 
+            over the Element object to preserve the order of the edges in the file 
+            and also to be able to differentiate them in case there exists more
+            than two edges from a location to another node in the file. The
+            default value of this attribute is -1.
     """
 
     def __init__(self, **kwargs):
@@ -397,10 +403,9 @@ class Transition:
         self.probability = kwargs.get('probability')
         self.comments = kwargs.get('comments')
         self.nails = kwargs.get('nails') if kwargs.get('nails') is not None else []
-        self._order_in_file = kwargs.get('order_in_file') if kwargs.get('order_in_file') is not None else -1
 
     @classmethod
-    def from_element(cls, et, order):
+    def from_element(cls, et):
         """Construct a Transition from an Element object, and return it."""
         kw = {}
         kw['source'] = et.find('source').get('ref')
@@ -424,8 +429,6 @@ class Transition:
                 kw['probability'] = label_obj
             elif l_kind == 'comments':
                 kw['comments'] = label_obj
-
-        kw['order_in_file'] = order
 
         kw['nails'] = [Nail((nail.get('x'), nail.get('y'))) for nail in 
                 et.findall('nail')]
@@ -655,3 +658,16 @@ class Query:
         print('QUERY:')
         print(self.formula)
         print(self.comment)
+
+def add_edge_wrapper(graph, template_name, edge):
+    """Given a graph, template name and an edge, insert the edge into the graph.
+
+    This is a wrapper for the graph.add_edge() method that increments
+    the counter attribute of the graph by one. If the edge_id of edge to
+    be added is -1 it will be set to counter.
+    """
+    graph.counter += 1
+    if edge.edge_id == -1:
+        edge.edge_id = graph.counter
+    graph.add_edge((template_name, edge.source), (template_name, edge.target),
+            obj = edge)
