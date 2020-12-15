@@ -42,8 +42,13 @@ class NTA:
         kw['templates'] = [Template.from_element(template) for template in
                 et.findall('template')]
         kw['system'] = SystemDeclaration.from_element(et.find('system'))
-        kw['queries'] = [Query.from_element(query) for query in et.find('queries').
-                findall('query')]
+        if et.find('queries') is None:
+            kw['queries'] = []
+        else:
+            kw['queries'] = [Query.from_element(query) for query in \
+                    et.find('queries').findall('query')]
+        #kw['queries'] = [Query.from_element(query) for query in et.find('queries').
+        #       findall('query')]
         return cls(**kw)
 
     def to_element(self):
@@ -70,7 +75,7 @@ class NTA:
         If pretty is True, the resulting str will be parsed by
         sml.dom.minidom and converted to str again with toprettyxml method.
         """
-        string = ET.to_string(ET.ElementTree(self.to_element()))
+        string = ET.tostring(self.to_element(), encoding='unicode')
         if pretty: return dom.parseString(string).toprettyxml()
         else: return string
 
@@ -138,8 +143,8 @@ class Template:
 
         kw['initial_location'] = (t_name, et.find('init').get('ref'))
 
-        for i, t in enumerate(et.findall('transition')):
-            trans = Transition.from_element(t, i)
+        for t in et.findall('transition'):
+            trans = Transition.from_element(t)
             add_edge_wrapper(kw['graph'], t_name, trans)
             #kw['graph'].add_edge((t_name, trans.source), (t_name, trans.target),
             #       obj = trans)
@@ -168,7 +173,7 @@ class Template:
         return [data['obj'] for source, target, data in edges]
 
     def get_initial_location(self):
-        return graph.initial_location
+        return self.graph.initial_location
 
 
     def _graph_to_element(self):
@@ -384,6 +389,7 @@ class Transition:
         self.probability = kwargs.get('probability')
         self.comments = kwargs.get('comments')
         self.nails = kwargs.get('nails') if kwargs.get('nails') is not None else []
+        self.edge_id = -1
 
     @classmethod
     def from_element(cls, et):
