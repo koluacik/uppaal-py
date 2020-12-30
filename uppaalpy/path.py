@@ -1,0 +1,187 @@
+from uppaalpy import core
+from uppaalpy import constraint
+import networkx as nx
+from ortools.linear_solver import pywraplp
+import sys
+
+EPS = 2 ** (-10)
+
+def path_exists(path):
+    """Return true if each edge is from previous location to next location."""
+    for i in range(1, len(path) - 1, 2):
+        if path[i - 1].id != path[i].source or path[i + 1].id != path[i].target:
+            return False
+    return True
+
+def find_used_clocks(path):
+    """Return the list of clocks that will be checked in path."""
+    res = []
+    for element in path:
+        constraints = constraint.get_constraints(element)
+        for c in constraints:
+            if c[0] not in res:
+                res.append(c[0])
+    res.sort()
+    return res
+
+def convert_to_path(template, lst):
+    """Given a template and a list return a list of node and edges.
+
+    Args:
+        template: Template name.
+        lst: Alternating list of location name strings and edge id's.
+    Returns:
+        An alternating list of location and transition objects.
+
+    Example: extract_path(temp, ["l0", 1, "l2", 3, "l2"])
+    returns an alternating list of location and edge objects.
+    Locations are denoted with strings denoting their name fields.
+    Edges are enumerated with zero-indexed integers according to their
+    order in the xml file.
+    This function makes use of nta.locations dictionary, hence it is assumed
+    that each location in the graph is uniquely identified by their name field.
+    """
+    path = []
+    for i, rep in enumerate(lst):
+        if i % 2: path.append(template.edges[rep])
+        else: path.append(template.locations[rep])
+    return path
+        
+def path_realizable(path, validate_path=False, add_epsilon=False):
+    """Given a path, construct an LP and return results.
+
+    Args:
+        path: List of alternating location and transitions.
+        validate_path: Check whether each transition is actually between
+            the previous location and the next location.
+        add_epsilon: Add epsilon to constraints with operators '<' and '>'.
+            This is useful for invalidating solutions that would be otherwise
+            correct with operators '<=' or '>='.
+    Returns:
+        A tuple of a bool and a witness list of delays for each location.
+    """
+            
+    if validate_path and not path_exists(path):
+        return False, []
+    length_of_path = len(path) // 2
+
+    clocks = find_used_clocks(path)
+
+    A = []
+    B = []
+
+    clock_to_delay = dict()
+
+    for x in clocks:
+        clock_to_delay[x] = [0]
+
+    for i in range(0, len(path) - 1, 2):
+        print(i)
+        # Source location
+        l = path[i]
+        if l.invariant is not None:
+            print("at:", l.name.name)
+            for c in l.invariant.parsed:
+                a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
+                print ("a rows:", a)
+                print ("b's", b)
+                for k in range(len(a)):
+                    A.append(a[k])
+                    B.append(b[k])
+        
+        # Transition
+        t = path[i + 1]
+        if t.guard is not None:
+            print("processing edge:")
+            for c in t.guard.parsed:
+                a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
+                print ("a rows:", a)
+                print ("b's", b)
+            for k in range(len(a)):
+                A.append(a[k])
+                B.append(b[k])
+
+        # Resets
+        resets_in_transition = get_resets(t, clock_to_delay.keys())
+        print("resets:", resets_in_transition)
+        for x in resets_in_transition:
+            clock_to_delay[x] = []
+
+        # Target location
+        l = path[i + 2]
+        if l.invariant is not None:
+            print("reaching", l.name.name)
+            for c in l.invariant.parsed:
+                a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
+                print ("a rows:", a)
+                print ("b's", b)
+            for k in range(len(a)):
+                A.append(a[k])
+                B.append(b[k])
+
+        # Add delays
+        for x in clocks:
+            clock_to_delay[x].append(i // 2 + 1)
+        print()
+
+    solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
+
+    x = {}
+
+    for j in range(length_of_path):
+        x[j] = solver.NumVar(0, solver.infinity(), 'x[%s]' % j)
+
+    for i in range(len(A)):
+        constraint = solver.RowConstraint(-solver.infinity(), B[i], '')
+        for j in range(length_of_path):
+            constraint.SetCoefficient(x[j], A[i][j])
+
+    status = solver.Solve()
+
+    delays = []
+
+
+    if status == solver.OPTIMAL:
+        for i in range(length_of_path):
+            delays.append(x[i].solution_value())
+        print(delays)
+        return True, delays
+
+    if status == solver.INFEASIBLE:
+        return False, []
+            
+
+def get_resets(transition, clocks):
+    if transition.assignment is None:
+        return []
+    a_strings = [s.strip() for s in transition.assignment.value.split(',')]
+    resets = []
+    for assignment in a_strings:
+        tokens = [word.strip().rstrip() for word in assignment.split('=')]
+        if len(tokens) == 2 and tokens[1] == '0' and tokens[0] in clocks:
+            resets.append(tokens[0])
+    return resets
+
+def compute_constraint(clock_to_delay, c, variable_count, add_epsilon=False):
+    A_row = [[0 for _ in range(variable_count)]]
+    for delay_var in clock_to_delay[c[0]]:
+        A_row[0][delay_var] = 1
+
+    B_row = [c[2]]
+    if c[1] == '>':
+        A_row[0] = [x * -1 for x in A_row[0]]
+        B_row[0] = -1 * B_row[0]
+
+    if add_epsilon and c[3] == False: # Inequality: Add epsilon.
+        B_row[0] -= EPS
+
+    if c[1] == '=':
+        A_row.append([x * -1 for x in A_row[0]])
+        B_row.append(-1 * B_row[0])
+
+    return A_row, B_row
+
+if __name__ == '__main__':
+    temp = core.NTA.from_xml('examples/generator/test5_6_2.xml').templates[0]
+    mypath = convert_to_path(temp, ["l0", 0, "l2", 1, "l3", 2, "l4"])
+    print(path_realizable(mypath))

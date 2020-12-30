@@ -3,6 +3,7 @@
 import xml.etree.cElementTree as ET
 import xml.dom.minidom as dom
 import networkx as nx
+from uppaalpy import constraint as c
 
 class NTA:
     """UPPAAL system of extended timed automata object.
@@ -13,7 +14,6 @@ class NTA:
         system: Declaration object for template instantiations and system 
             declaration.
         queries: List of query objects.
-        global_clocks: List of strings for clocks in global declaration.
     """
 
     def __init__(self, **kwargs):
@@ -79,7 +79,7 @@ class NTA:
         if pretty: return dom.parseString(string).toprettyxml()
         else: return string
 
-    def to_file(self, path, pretty = False):
+    def to_file(self, path, pretty=False):
         """Convert the NTA object to a string, and print it to a file.
 
         Args:
@@ -110,6 +110,12 @@ class Template:
             as nodes and transitions as edges. NetworkX requires nodes and 
             edges to be hashable. For this reason, actual Node and Transition
             objects are 'attached' to the graph nodes and edges as attributes.
+        edges: Ordered list of edges for constant time access.
+            edges[n] is the n'th edge read from the xml file in the graph.
+        locations: Dictionary of named locations for constant time access.
+            locations[foo] is the location with name foo. This is only useful
+            if all locations are uniquely identified with their name fields.
+            Otherwise you must use the id field of locations to identify them.
     """
 
     def __init__(self, **kwargs):
@@ -118,6 +124,8 @@ class Template:
         self.declaration = kwargs.get('declaration')
         self.graph = kwargs.get('graph') or nx.MultiDiGraph()
         self.graph.initial_location = kwargs.get('initial_location')
+        self.edges = kwargs['edges']
+        self.locations = kwargs['locations']
 
     @classmethod
     def from_element(cls, et):
@@ -128,14 +136,17 @@ class Template:
         kw['parameter'] = Parameter.from_element(et.find('parameter'))
         kw['declaration'] = Declaration.from_element(et.find('declaration'))
         kw['graph'] = nx.MultiDiGraph()
-
         kw['graph'].counter = 0
+        kw['edges'] = []
+        kw['locations'] = {}
 
         t_name = kw['name'].name
 
         for l in et.findall('location'):
             loc = Location.from_element(l) 
             kw['graph'].add_node((t_name, loc.id), obj = loc)
+            if (loc.name != None):
+                kw['locations'][loc.name.name] = loc
 
         for b in et.findall('branchpoint'):
             bp = Location.from_element(l) 
@@ -146,8 +157,7 @@ class Template:
         for t in et.findall('transition'):
             trans = Transition.from_element(t)
             add_edge_wrapper(kw['graph'], t_name, trans)
-            #kw['graph'].add_edge((t_name, trans.source), (t_name, trans.target),
-            #       obj = trans)
+            kw['edges'].append(trans)
 
         return cls(**kw)
 
@@ -236,7 +246,7 @@ class Node:
             label_obj = Label.from_element(label)
 
             if l_kind == 'invariant':
-                kw['invariant'] = label_obj
+                kw['invariant'] = Constraint(label_obj)
             elif l_kind == 'exponentialrate':
                 kw['exponentialrate'] = label_obj
             elif l_kind == 'comments':
@@ -405,7 +415,7 @@ class Transition:
             if l_kind == 'select':
                 kw['select'] = label_obj;
             elif l_kind == 'guard':
-                kw['guard'] = label_obj
+                kw['guard'] = Constraint(label_obj)
             elif l_kind == 'synchronisation':
                 kw['synchronisation'] = label_obj
             elif l_kind == 'assignment':
@@ -493,8 +503,10 @@ class Label:
     Many location and edge attributes in UPPAAL are stored as xml elements with
     tag 'label', and differentiated by their attribute 'kind'.  The 'content'
     of these elements are currently stored as strings. Finally, they also have
-    a location 'x' and 'y'. Some label kinds like comments are not visible in
+    a location 'x' and 'y'. Some label kinds like test code are not visible in
     the UPPAAL template editor. These labels do not have a pos.
+
+    See subclass Constraint.
 
     Attributes:
         kind: String for differentiating the kind of the label.
@@ -502,7 +514,7 @@ class Label:
         pos: A pair of ints for position. Some label kinds do not have a pos.
     """
 
-    def __init__(self, kind, value, pos = None):
+    def __init__(self, kind, value, pos=None):
         self.kind = kind
         self.value = value
         self.pos = pos
@@ -527,6 +539,16 @@ class Label:
         print('LABEL kind: ', self.kind, ' value: ', self.value, end = '') 
         if self.pos is not None:
             print(' position: ', self.pos)
+
+class Constraint(Label):
+    """A specific label for invariants or transitions in timed automata.
+
+    The attribute 'parsed' simplifies computations involving constraints.
+    """
+
+    def __init__(self, obj):
+        super().__init__(obj.kind, obj.value, obj.pos)
+        self.parsed = c.string_to_simple(self.value)
 
 class SimpleField:
     """Simple text field with fromEt and to_element methods. 
@@ -579,8 +601,7 @@ class Declaration(SimpleField):
     tag = 'declaration'
 
 class Parameter(SimpleField):
-    """A derived class for simple strings in UPPAAL.
-
+    """A derived class for simple strings in UPPAAL.  
     See base class SimpleField.
     """
 
@@ -653,8 +674,8 @@ def add_edge_wrapper(graph, template_name, edge):
     the counter attribute of the graph by one. If the edge_id of edge to
     be added is -1 it will be set to counter.
     """
-    graph.counter += 1
     if edge.edge_id == -1:
         edge.edge_id = graph.counter
     graph.add_edge((template_name, edge.source), (template_name, edge.target),
             obj = edge)
+    graph.counter += 1
