@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.</declaration>
+	<template>
+		<name x="5" y="5">Template</name>
+		<declaration>// Place local declarations here.
+clock x;
+clock y;</declaration>
+		<location id="id0" x="0" y="204">
+			<name x="-10" y="170">l5</name>
+			<label kind="invariant" x="-51" y="221">x &lt;= 5 &amp;&amp; y &gt;= 5</label>
+		</location>
+		<location id="id1" x="204" y="204">
+			<name x="194" y="170">l4</name>
+			<label kind="invariant" x="194" y="221">x &lt;= 10 &amp;&amp; y &lt;= 5</label>
+		</location>
+		<location id="id2" x="0" y="0">
+			<name x="-10" y="-34">l0</name>
+			<label kind="invariant" x="-10" y="17">x &lt;= 100</label>
+		</location>
+		<location id="id3" x="205" y="0">
+			<name x="195" y="-34">l1</name>
+			<label kind="invariant" x="144" y="25">x &gt;= 25 &amp;&amp; y &lt;= 10</label>
+		</location>
+		<location id="id4" x="408" y="0">
+			<name x="398" y="-34">l2</name>
+			<label kind="invariant" x="398" y="17">x &gt;= 10 &amp;&amp; y &gt;= 10</label>
+		</location>
+		<location id="id5" x="408" y="204">
+			<name x="398" y="170">l3</name>
+			<label kind="invariant" x="398" y="221">x &lt;= 0 &amp;&amp; y &lt;= 0</label>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="18" y="204">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id1"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="408" y="102">x = 0, y = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="229" y="-25">y &gt;= 10 &amp;&amp; x &lt;= 25</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-17" y="-51">x &gt;= 10 &amp;&amp; y &lt;= 15 &amp;&amp; y &gt;= 10</label>
+			<label kind="assignment" x="76" y="-25">y = 0</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment>l0 4 l1 3 l2 2 l3 1 l4 0 l5</comment>
+		</query>
+		<query>
+			<formula></formula>
+			<comment>0</comment>
+		</query>
+	</queries>
+</nta>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+int i;</declaration>
+	<template>
+		<name x="5" y="5">Template</name>
+		<declaration>// Place local declarations here.
+clock x;</declaration>
+		<location id="id0" x="0" y="0">
+			<name x="-10" y="-34">good location</name>
+			<label kind="invariant" x="-10" y="17">x &lt;= 0</label>
+			<committed/>
+		</location>
+		<location id="id1" x="170" y="0">
+			<label kind="comments" x="160" y="59">hello there</label>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="18" y="-34">x &lt;= 0 &amp;&amp; x &gt;= 10</label>
+			<label kind="assignment" x="18" y="0">x = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Template0</name>
+		<parameter>foo bar</parameter>
+		<location id="id2" x="0" y="0">
+			<name x="-10" y="-34">hello</name>
+		</location>
+		<location id="id3" x="136" y="0">
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
