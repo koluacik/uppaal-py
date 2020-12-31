@@ -13,15 +13,16 @@ def parse_inequality_simple(inequality):
         if inequality[i] in ['<', '>', '=']:
             ind = i
             break
-    clock_name = inequality[0:ind].strip()
+    lhs = inequality[0:ind].strip()
     operator = inequality[ind]
     equality = False
     if inequality[ind+1] == '=':
         ind += 1
         equality = True
-    rest = inequality[ind+1:].strip()
-    threshold = int(rest)
-    return clock_name, operator, threshold, equality
+    rhs = inequality[ind+1:].strip()
+    threshold = int(rhs)
+    clocks = [c.rstrip().strip() for c in lhs.split('-')]
+    return clocks, operator, threshold, equality
 
 def get_invariant_constraints(location):
     if location.invariant is not None:

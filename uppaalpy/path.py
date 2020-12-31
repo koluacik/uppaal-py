@@ -19,8 +19,9 @@ def find_used_clocks(path):
     for element in path:
         constraints = constraint.get_constraints(element)
         for c in constraints:
-            if c[0] not in res:
-                res.append(c[0])
+            for clock in c[0]:
+                if clock not in res:
+                    res.append(clock)
     res.sort()
     return res
 
@@ -164,8 +165,12 @@ def get_resets(transition, clocks):
 
 def compute_constraint(clock_to_delay, c, variable_count, add_epsilon=False):
     A_row = [[0 for _ in range(variable_count)]]
-    for delay_var in clock_to_delay[c[0]]:
+    for delay_var in clock_to_delay[c[0][0]]:
         A_row[0][delay_var] = 1
+       
+    if len(c[0]) == 2: # clock difference
+        for delay_var in clock_to_delay[c[0][1]]:
+            A_row[0][delay_var] -= 1
 
     B_row = [c[2]]
     if c[1] == '>':
