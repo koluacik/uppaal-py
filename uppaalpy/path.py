@@ -77,15 +77,11 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         clock_to_delay[x] = [0]
 
     for i in range(0, len(path) - 1, 2):
-        print(i)
         # Source location
         l = path[i]
         if l.invariant is not None:
-            print("at:", l.name.name)
             for c in l.invariant.parsed:
                 a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
-                print ("a rows:", a)
-                print ("b's", b)
                 for k in range(len(a)):
                     A.append(a[k])
                     B.append(b[k])
@@ -93,29 +89,22 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         # Transition
         t = path[i + 1]
         if t.guard is not None:
-            print("processing edge:")
             for c in t.guard.parsed:
                 a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
-                print ("a rows:", a)
-                print ("b's", b)
             for k in range(len(a)):
                 A.append(a[k])
                 B.append(b[k])
 
         # Resets
         resets_in_transition = get_resets(t, clock_to_delay.keys())
-        print("resets:", resets_in_transition)
         for x in resets_in_transition:
             clock_to_delay[x] = []
 
         # Target location
         l = path[i + 2]
         if l.invariant is not None:
-            print("reaching", l.name.name)
             for c in l.invariant.parsed:
                 a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
-                print ("a rows:", a)
-                print ("b's", b)
             for k in range(len(a)):
                 A.append(a[k])
                 B.append(b[k])
@@ -123,7 +112,6 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         # Add delays
         for x in clocks:
             clock_to_delay[x].append(i // 2 + 1)
-        print()
 
     solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
 
@@ -145,7 +133,6 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
     if status == solver.OPTIMAL:
         for i in range(length_of_path):
             delays.append(x[i].solution_value())
-        print(delays)
         return True, delays
 
     if status == solver.INFEASIBLE:
@@ -189,4 +176,3 @@ def compute_constraint(clock_to_delay, c, variable_count, add_epsilon=False):
 if __name__ == '__main__':
     temp = core.NTA.from_xml('examples/generator/test5_6_2.xml').templates[0]
     mypath = convert_to_path(temp, ["l0", 0, "l2", 1, "l3", 2, "l4"])
-    print(path_realizable(mypath))
