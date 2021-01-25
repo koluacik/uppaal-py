@@ -1,6 +1,7 @@
 """Core module for processing xml files."""
 
-import xml.etree.cElementTree as ET
+#import xml.etree.cElementTree as ET
+import lxml.etree as ET
 import xml.dom.minidom as dom
 import networkx as nx
 from uppaalpy import constraint as c
@@ -47,8 +48,6 @@ class NTA:
         else:
             kw['queries'] = [Query.from_element(query) for query in \
                     et.find('queries').findall('query')]
-        #kw['queries'] = [Query.from_element(query) for query in et.find('queries').
-        #       findall('query')]
         return cls(**kw)
 
     def to_element(self):
@@ -86,8 +85,9 @@ class NTA:
             path: String denoting the path of the output file.
             pretty: Whether to pretty print, see: NTA.to_string.
         """
-        with open(path, 'w') as file:
-            file.write(self.to_string(pretty))
+        (ET.ElementTree(self.to_element())).write(path, encoding='utf-8', pretty_print=pretty)
+        #with open(path, 'w') as file:
+        #    file.write(self.to_string(pretty))
 
     def _display(self):
         """Print the object, used for debug purposes."""
