@@ -1,10 +1,11 @@
 import pytest
 from tests.helpers import *
-import xml.etree.cElementTree as ET
+#import xml.etree.cElementTree as ET
+import lxml.etree as ET
 
 @pytest.mark.parametrize("fp", broken_xml())
 def test_bad_xml(fp):
-    with pytest.raises(ET.ParseError):
+    with pytest.raises(ET.XMLSyntaxError):
         assert read_file(fp)
 
 @pytest.mark.parametrize("fp", broken_nta())
