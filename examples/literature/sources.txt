@@ -1,0 +1,37 @@
+As taken from https://github.com/jar-ben/tamus
+accel1000:
+    -Offline timed pattern matching under uncertainty:
+        https://arxiv.org/abs/1812.08940
+    -Benchmarks for Temporal Logic Requirements for Automotive Systems:
+        https://easychair.org/publications/paper/4bfq
+CAS:
+    -Time for Mutants — Model-Based Mutation Testing with Timed Automata:
+        http://www.ist.tugraz.at/aichernig/publications/papers/tap13-time.pdf
+coffee:
+    -Parametric Verification: An Introduction:
+        https://arxiv.org/abs/1907.00555
+Jobshop4:
+    -Job-Shop Scheduling Using Timed Automata?:
+        https://link.springer.com/chapter/10.1007/3-540-44585-4_46
+pipeline3-3:
+    -Bounded Model Checking for Parametric Timed Automata:
+        https://home.ipipan.waw.pl/m.knapik/documents/publications/bmc4ptasumo.pdf
+RCP:
+    -Parameterized Reachability Analysis of the IEEE 1394 Root Contention Protocol using TReX:
+        https://www.semanticscholar.org/paper/Parameterized-Reachability-Analysis-of-the-IEEE-Collomb-Annichini-Sighireanu/7c18fc8cc4fb5ed273c38accc975fd9d30ae3350
+SIMOP3:
+    -Synthèse de contraintes temporisées pour une architecture d'automatisation en réseau:
+        https://www.semanticscholar.org/paper/Synth%C3%A8se-de-contraintes-temporis%C3%A9es-pour-une-en-Andr%C3%A9-Chatain/65e7a6d4feb131fb09b37bdba21996693a00f473
+Fischer:
+    -Linear Parametric Model Checking of Timed Automata:
+        https://www.researchgate.net/publication/220852368_Linear_Parametric_Model_Checking_of_Timed_Automata
+JLR13-3tasks:
+    -Integer Parameter Synthesis for TimedAutomata:
+        https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.394.9639&rep=rep1&type=pdf
+    -Reachability Preservation Based Parameter Synthesis for Timed Automata:
+        https://www.loria.science/andre/documents/reachability-preservation-based-parameter-synthesis-for-timed-automata.pdf
+WFAS:
+    -Language Emptiness of Continuous-Time Parametric Timed Automata:
+        https://arxiv.org/abs/1504.07838
+    -The Wireless Fire Alarm System: Ensuring Conformance to Industrial Standards through Formal Verification:
+        https://www.researchgate.net/publication/291179754_The_Wireless_Fire_Alarm_System_Ensuring_Conformance_to_Industrial_Standards_through_Formal_Verification
