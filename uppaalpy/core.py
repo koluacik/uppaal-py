@@ -657,5 +657,5 @@ def add_edge_wrapper(graph, template_name, edge):
     if edge.edge_id == -1:
         edge.edge_id = graph.counter
     graph.add_edge((template_name, edge.source), (template_name, edge.target),
-            obj = edge)
+            obj=edge, key=graph.counter)
     graph.counter += 1
