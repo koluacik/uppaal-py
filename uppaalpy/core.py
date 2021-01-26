@@ -1,6 +1,5 @@
 """Core module for processing xml files."""
 
-#import xml.etree.cElementTree as ET
 import lxml.etree as ET
 import xml.dom.minidom as dom
 import networkx as nx
@@ -34,6 +33,7 @@ class NTA:
     def from_xml(cls, path):
         """Construct NTA from file path, and return it."""
         return NTA.from_element(ET.parse(path).getroot())
+    
 
     @classmethod
     def from_element(cls, et):
@@ -41,13 +41,13 @@ class NTA:
         kw = {}
         kw['declaration'] = Declaration.from_element(et.find('declaration'))
         kw['templates'] = [Template.from_element(template) for template in
-                et.findall('template')]
+                et.iterchildren('template')]
         kw['system'] = SystemDeclaration.from_element(et.find('system'))
         if et.find('queries') is None:
             kw['queries'] = []
         else:
             kw['queries'] = [Query.from_element(query) for query in \
-                    et.find('queries').findall('query')]
+                    et.find('queries').iter('query')]
         return cls(**kw)
 
     def to_element(self):
@@ -86,8 +86,6 @@ class NTA:
             pretty: Whether to pretty print, see: NTA.to_string.
         """
         (ET.ElementTree(self.to_element())).write(path, encoding='utf-8', pretty_print=pretty)
-        #with open(path, 'w') as file:
-        #    file.write(self.to_string(pretty))
 
     def _display(self):
         """Print the object, used for debug purposes."""
@@ -142,19 +140,19 @@ class Template:
 
         t_name = kw['name'].name
 
-        for l in et.findall('location'):
+        for l in et.iter('location'):
             loc = Location.from_element(l) 
             kw['graph'].add_node((t_name, loc.id), obj = loc)
             if (loc.name != None):
                 kw['locations'][loc.name.name] = loc
 
-        for b in et.findall('branchpoint'):
+        for b in et.iter('branchpoint'):
             bp = Location.from_element(l) 
             kw['graph'].add_node((t_name, bp.id), obj = bp)
 
         kw['initial_location'] = (t_name, et.find('init').get('ref'))
 
-        for t in et.findall('transition'):
+        for t in et.iter('transition'):
             trans = Transition.from_element(t)
             add_edge_wrapper(kw['graph'], t_name, trans)
             kw['edges'].append(trans)
@@ -241,20 +239,14 @@ class Node:
         kw['pos'] = int(et.get('x')), int(et.get('y'))
         kw['name'] = Name.from_element(et.find('name'))
 
-        for label in et.findall('label'):
+        for label in et.iter('label'):
             l_kind = label.get('kind')
             label_obj = Label.from_element(label)
 
             if l_kind == 'invariant':
-                kw['invariant'] = Constraint(label_obj)
-            elif l_kind == 'exponentialrate':
-                kw['exponentialrate'] = label_obj
-            elif l_kind == 'comments':
-                kw['comments'] = label_obj
-            elif l_kind == 'testcodeEnter':
-                kw['testcodeEnter'] = label_obj
-            elif l_kind == 'testcodeExit':
-                kw['testcodeExit'] = label_obj
+                label_obj = Constraint(label_obj)
+
+            kw[l_kind] = label_obj
 
         kw['committed'] = et.find('committed') in et
         kw['urgent'] = et.find('urgent') in et
@@ -408,27 +400,15 @@ class Transition:
         kw['source'] = et.find('source').get('ref')
         kw['target'] = et.find('target').get('ref')
 
-        for label in et.findall('label'):
+        for label in et.iter('label'):
             l_kind = label.get('kind')
             label_obj = Label.from_element(label)
-
-            if l_kind == 'select':
-                kw['select'] = label_obj;
-            elif l_kind == 'guard':
-                kw['guard'] = Constraint(label_obj)
-            elif l_kind == 'synchronisation':
-                kw['synchronisation'] = label_obj
-            elif l_kind == 'assignment':
-                kw['assignment'] = label_obj
-            elif l_kind == 'testcode':
-                kw['testcode'] = label_obj
-            elif l_kind == 'probability':
-                kw['probability'] = label_obj
-            elif l_kind == 'comments':
-                kw['comments'] = label_obj
+            if l_kind == 'guard':
+                label_obj = Constraint(label_obj)
+            kw[l_kind] = label_obj
 
         kw['nails'] = [Nail((nail.get('x'), nail.get('y'))) for nail in 
-                et.findall('nail')]
+                et.iter('nail')]
 
         return cls(**kw)
 
