@@ -168,6 +168,7 @@ class Template:
         if self.declaration is not None:
             element.append(self.declaration.to_element())
         element.extend(self._graph_to_element())
+        element.extend([edge.to_element() for edge in self.edges])
         return element
 
     def get_nodes(self):
@@ -189,7 +190,7 @@ class Template:
         elements = [node.to_element() for node in self.get_nodes()]
         initial = self.get_initial_location();
         elements.append(ET.Element('init', attrib = {'ref': initial[1]}))
-        elements.extend([edge.to_element() for edge in self.get_edges()])
+        #elements.extend([edge.to_element() for edge in self.get_edges()])
         return elements
 
     def _display(self):
