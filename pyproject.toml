@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "uppaal-py"
+version = "0.0.2"
+description = "UPPAAL wrapper for Python."
+authors = ["Deniz Koluaçık <koluacik@disroot.org>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/koluacik/uppaal-py"
+packages = [
+    { include = "uppaalpy", from = "lib" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+ortools = "^8.1.8487"
+networkx = "^2.5"
+lxml = "^4.6.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
