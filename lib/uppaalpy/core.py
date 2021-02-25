@@ -32,7 +32,7 @@ class NTA:
     @classmethod
     def from_xml(cls, path):
         """Construct NTA from file path, and return it."""
-        return NTA.from_element(ET.parse(path).getroot())
+        return cls.from_element(ET.parse(path).getroot())
     
 
     @classmethod
@@ -87,16 +87,6 @@ class NTA:
         """
         (ET.ElementTree(self.to_element())).write(path, encoding='utf-8', pretty_print=pretty)
 
-    def _display(self):
-        """Print the object, used for debug purposes."""
-
-        print('NTA:')
-        if self.declaration._display() is not None:
-            self.declaration._display()
-        [template._display() for template in self.templates]
-        self.system._display()
-        [query._display() for query in self.queries]
-
 class Template:
     """Template for extended timed automaton.
 
@@ -120,7 +110,8 @@ class Template:
         self.name = kwargs.get('name')
         self.parameter = kwargs.get('parameter')
         self.declaration = kwargs.get('declaration')
-        self.graph = kwargs.get('graph') or nx.MultiDiGraph()
+        # self.graph = kwargs.get('graph') or nx.MultiDiGraph()
+        self.graph = kwargs.get('graph') or TAGraph()
         self.graph.initial_location = kwargs.get('initial_location')
         self.edges = kwargs['edges']
         self.locations = kwargs['locations']
@@ -147,7 +138,7 @@ class Template:
                 kw['locations'][loc.name.name] = loc
 
         for b in et.iter('branchpoint'):
-            bp = Location.from_element(l) 
+            bp = Location.from_element(b) 
             kw['graph'].add_node((t_name, bp.id), obj = bp)
 
         kw['initial_location'] = (t_name, et.find('init').get('ref'))
@@ -173,13 +164,13 @@ class Template:
 
     def get_nodes(self):
         """Return a list of nodes from the multidigraph."""
-        return [data['obj'] for node, data in self.graph.nodes(data = True)]
+        return [data['obj'] for _, data in list(self.graph.nodes(data = True))]
 
     def get_edges(self):
         """Return a list of transitions from the multidigraph."""
         edges = sorted(self.graph.edges(data = True),
                 key = lambda x: x[2]['obj'].edge_id)
-        return [data['obj'] for source, target, data in edges]
+        return [data['obj'] for _, _, _, data in edges]
 
     def get_initial_location(self):
         return self.graph.initial_location
@@ -193,24 +184,6 @@ class Template:
         #elements.extend([edge.to_element() for edge in self.get_edges()])
         return elements
 
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print('TEMPLATE:')
-        self.name._display()
-        print()
-        if (self.parameter is not None):
-            self.parameter._display()
-            print()
-        if (self.declaration is not None):
-            self.declaration._display()
-            print()
-        [node[1]['obj']._display() for node in self.graph.nodes(data = True)]
-        print('INIT:', self.graph.initial_location)
-        print()
-        [edge[2]['obj']._display() for edge in 
-                sorted(self.graph.edges(data = True),
-                    key = lambda x: x[2]['obj'].edge_id)]
-
 class Node:
     """Abstract class for nodes of the multidigraph in TA templates.
 
@@ -221,15 +194,13 @@ class Node:
         pos: Pair of ints for storing the position of the node.
     """
 
-    tag = ""
+    tag = None
+    id = None
+    pos = None
 
-    def __init__(self, **kwargs):
-        self.id = kwargs['id']
-        self.pos = kwargs['pos']
-
-    @classmethod
-    def from_element(cls, et):
-        """Construct a Node from an Element object, and return it.
+    @staticmethod
+    def generate_dict(et):
+        """Construct a dict from an Element object, and return it.
 
         Notice that only 'id' and 'pos' are relevant for BranchPoints. Other
         attributes are not present in the XML file and gracefully ignored for 
@@ -252,17 +223,13 @@ class Node:
         kw['committed'] = et.find('committed') in et
         kw['urgent'] = et.find('urgent') in et
 
-        return cls(**kw)
+        return kw
 
     def to_element(self):
         """Convert this object to an Element. Is extended by Location.to_element."""
         element = ET.Element(self.tag, attrib =
                 {'id': self.id, 'x': str(self.pos[0]), 'y': str(self.pos[1])})
         return element
-
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print(self.tag, ': ', self.id, ' -> ', self.pos, sep='')
 
 class BranchPoint(Node):
     """Derived class of Node.
@@ -271,6 +238,17 @@ class BranchPoint(Node):
     """
 
     tag = 'branchpoint'
+
+
+    def __init__(self, **kwargs):
+        self.id = kwargs['id']
+        self.pos = kwargs['pos']
+
+    @classmethod
+    def from_element(cls, et):
+        """Generate a dictionary for initialization from et and construct a BP.
+        """
+        return cls(**super().generate_dict(et))
 
 class Location(Node):
     """Derived class of Node.
@@ -299,7 +277,8 @@ class Location(Node):
 
         This method extends Node.__init__.
         """
-        super().__init__(**kwargs)
+        self.id = kwargs['id']
+        self.pos = kwargs['pos']
         self.name = kwargs.get('name')
         self.invariant = kwargs.get('invariant')
         self.exponentialrate = kwargs.get('exponentialrate')
@@ -308,6 +287,12 @@ class Location(Node):
         self.comments = kwargs.get('comments')
         self.committed = kwargs.get('is_committed') or False
         self.urgent = kwargs.get('is_urgent') or False
+
+    @classmethod
+    def from_element(cls, et):
+        """Generate a dictionary for initialization from et and construct a Loc.
+        """
+        return cls(**super().generate_dict(et))
 
     def to_element(self):
         """Convert this object to an Element.
@@ -320,7 +305,7 @@ class Location(Node):
         if self.invariant is not None:
             element.append(self.invariant.to_element())
         if self.exponentialrate is not None:
-            element.append(self.exponentialrat.to_element())
+            element.append(self.exponentialrate.to_element())
         if self.testcodeEnter is not None:
             element.append(self.testcodeEnter.to_element())
         if self.testcodeExit is not None:
@@ -333,24 +318,6 @@ class Location(Node):
             element.append(ET.Element('urgent'))
         return element
     
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        super()._display()
-        if (self.name is not None):
-            self.name._display()
-        if (self.invariant is not None):
-            self.invariant._display()
-        if (self.exponentialrate is not None):
-            self.exponentialrate._display()
-        if (self.testcodeEnter is not None):
-            self.testcodeEnter._display()
-        if (self.testcodeExit is not None):
-            self.testcodeExit._display()
-        if (self.comments is not None):
-            self.comments._display()
-        print('committed: ', self.committed, ' urgent: ', self.urgent, sep='')
-        print()
-
 class Transition:
     """Class for edges of the TA.
 
@@ -436,26 +403,6 @@ class Transition:
             element.append(nail.to_element())
         return element
 
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print('TRANSITION from', self.source, 'to', self.target)
-        if (self.select is not None):
-            self.select._display()
-        if (self.guard is not None):
-            self.guard._display()
-        if (self.synchronisation is not None):
-            self.synchronisation._display()
-        if (self.assignment is not None):
-            self.assignment._display()
-        if (self.testcode is not None):
-            self.testcode._display()
-        if (self.probability is not None):
-            self.probability._display()
-        if (self.comments is not None):
-            self.comments._display()
-        [nail._display() for nail in self.nails]
-        print()
-
 class Nail:
     """Class for storing 'nails' on the edges of the TA.
 
@@ -472,11 +419,6 @@ class Nail:
 
     def to_element(self):
         return ET.Element('nail', attrib = {'x': str(self.pos[0]), 'y': str(self.pos[1])})
-
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print('NAIL:', self.pos)
-
 
 class Label:
     """A label object from UPPAAL. 
@@ -514,12 +456,6 @@ class Label:
             element.set('x', str(self.pos[0]))
             element.set('y', str(self.pos[1]))
         return element
-
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print('LABEL kind: ', self.kind, ' value: ', self.value, end = '') 
-        if self.pos is not None:
-            print(' position: ', self.pos)
 
 class Constraint(Label):
     """A specific label for invariants or transitions in timed automata.
@@ -560,10 +496,6 @@ class SimpleField:
         element = ET.Element(self.tag)
         element.text = self.text
         return element
-
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print(self.tag, ': ', self.text[:20], sep = '')
 
 class SystemDeclaration(SimpleField):
     """A derived class for simple strings in UPPAAL.
@@ -611,10 +543,6 @@ class Name:
         element.text = self.name
         return element
 
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print('NAME: ', self.name, int(self.pos[0]), int(self.pos[1]))
-
 class Query:
     """Query object with formula and a comment.
 
@@ -642,12 +570,6 @@ class Query:
         comment.text = self.comment
         return query
 
-    def _display(self):
-        """Print the object, used for debug purposes."""
-        print('QUERY:')
-        print(self.formula)
-        print(self.comment)
-
 def add_edge_wrapper(graph, template_name, edge):
     """Given a graph, template name and an edge, insert the edge into the graph.
 
@@ -660,3 +582,12 @@ def add_edge_wrapper(graph, template_name, edge):
     graph.add_edge((template_name, edge.source), (template_name, edge.target),
             obj=edge, key=graph.counter)
     graph.counter += 1
+
+class TAGraph(nx.MultiDiGraph):
+    """Derived class of NetworkX MultiDiGraph.
+
+    Extends the base class with initial node information."""
+    
+    def __init__(self, incoming_graph_data=None, **attr):
+        super().__init__(incoming_graph_data, **attr)
+        self.initial_location = None
