@@ -10,7 +10,7 @@ def list_nta_in_dir(directory):
 
 def benchmark_read(files):
     for f in files:
-        temp = uppaalpy.core.NTA.from_xml(f)
+        _ = uppaalpy.NTA.from_xml(f)
 
 def benchmark_pretty_print(ntas):
     for nta in ntas:
@@ -22,11 +22,11 @@ def benchmark_write(ntas):
 
 def benchmark_lxml_read(files):
     for f in files:
-        temp = LET.parse(f)
+        _ = LET.parse(f)
 
 def benchmark_cet_read(files):
     for f in files:
-        temp = CET.parse(f)
+        _ = CET.parse(f)
 
 # cElementTree and lxml share the same API for writing.
 def benchmark_xml_write(trees):
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     ntas = []
     for f in files:
-        ntas.append(uppaalpy.core.NTA.from_xml(f))
+        ntas.append(uppaalpy.NTA.from_xml(f))
 
     print("Benchmarking to_xml method (ugly).")
     start = timeit.default_timer()

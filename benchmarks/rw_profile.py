@@ -1,6 +1,6 @@
 #from benchmarks.readwrite import *
 #from .readwrite import *
-from readwrite import *
+from .readwrite import *
 import cProfile
 import pstats
 from pstats import SortKey
@@ -13,11 +13,11 @@ if __name__ == '__main__':
 
     ntas = []
     for f in files:
-        ntas.append(uppaalpy.core.NTA.from_xml(f))
+        ntas.append(uppaalpy.NTA.from_xml(f))
 
     lit_ntas = []
     for f in lit_files:
-        lit_ntas.append(uppaalpy.core.NTA.from_xml(f))
+        lit_ntas.append(uppaalpy.NTA.from_xml(f))
 
     cProfile.run('benchmark_write(ntas)', 'benchmarks/write_stats')
     cProfile.run('benchmark_write(lit_ntas)', 'benchmarks/lit_write_stats')
