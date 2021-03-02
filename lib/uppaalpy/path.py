@@ -1,8 +1,5 @@
-from uppaalpy import core
-from uppaalpy import constraint
-import networkx as nx
+#from uppaalpy import constraint
 from ortools.linear_solver import pywraplp
-import sys
 
 EPS = 2 ** (-10)
 
@@ -17,9 +14,9 @@ def find_used_clocks(path):
     """Return the list of clocks that will be checked in path."""
     res = []
     for element in path:
-        constraints = constraint.get_constraints(element)
+        constraints = element.get_constraints()
         for c in constraints:
-            for clock in c[0]:
+            for clock in c.clocks:
                 if clock not in res:
                     res.append(clock)
     res.sort()
@@ -44,10 +41,10 @@ def convert_to_path(template, lst):
     """
     path = []
     for i, rep in enumerate(lst):
-        if i % 2: path.append(template.edges[rep])
-        else: path.append(template.locations[rep])
+        if i % 2: path.append(template.graph._transitions[rep])
+        else: path.append(template.graph._named_locations[rep])
     return path
-        
+
 def path_realizable(path, validate_path=False, add_epsilon=False):
     """Given a path, construct an LP and return results.
 
@@ -61,7 +58,7 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
     Returns:
         A tuple of a bool and a witness list of delays for each location.
     """
-            
+
     if validate_path and not path_exists(path):
         return False, []
     length_of_path = len(path) // 2
@@ -80,20 +77,20 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         # Source location
         l = path[i]
         if l.invariant is not None:
-            for c in l.invariant.parsed:
+            for c in l.invariant.constraints:
                 a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
                 for k in range(len(a)):
                     A.append(a[k])
                     B.append(b[k])
-        
+
         # Transition
         t = path[i + 1]
         if t.guard is not None:
-            for c in t.guard.parsed:
+            for c in t.guard.constraints:
                 a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
-            for k in range(len(a)):
-                A.append(a[k])
-                B.append(b[k])
+                for k in range(len(a)):
+                    A.append(a[k])
+                    B.append(b[k])
 
         # Resets
         resets_in_transition = get_resets(t, clock_to_delay.keys())
@@ -103,11 +100,11 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         # Target location
         l = path[i + 2]
         if l.invariant is not None:
-            for c in l.invariant.parsed:
+            for c in l.invariant.constraints:
                 a, b = compute_constraint(clock_to_delay, c, length_of_path, add_epsilon)
-            for k in range(len(a)):
-                A.append(a[k])
-                B.append(b[k])
+                for k in range(len(a)):
+                    A.append(a[k])
+                    B.append(b[k])
 
         # Add delays
         for x in clocks:
@@ -137,7 +134,6 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
 
     if status == solver.INFEASIBLE:
         return False, []
-            
 
 def get_resets(transition, clocks):
     if transition.assignment is None:
@@ -150,29 +146,30 @@ def get_resets(transition, clocks):
             resets.append(tokens[0])
     return resets
 
-def compute_constraint(clock_to_delay, c, variable_count, add_epsilon=False):
+def compute_constraint(clock_to_delay, simple_constraint, variable_count, add_epsilon=False):
     A_row = [[0 for _ in range(variable_count)]]
-    for delay_var in clock_to_delay[c[0][0]]:
+    for delay_var in clock_to_delay[simple_constraint.clocks[0]]:
         A_row[0][delay_var] = 1
-       
-    if len(c[0]) == 2: # clock difference
-        for delay_var in clock_to_delay[c[0][1]]:
+
+    if len(simple_constraint.clocks) == 2: # clock difference
+        for delay_var in clock_to_delay[simple_constraint.clocks[1]]:
             A_row[0][delay_var] -= 1
 
-    B_row = [c[2]]
-    if c[1] == '>':
+    B_row = [simple_constraint.threshold]
+    if simple_constraint.operator == '>':
         A_row[0] = [x * -1 for x in A_row[0]]
         B_row[0] = -1 * B_row[0]
 
-    if add_epsilon and c[3] == False: # Inequality: Add epsilon.
+    if add_epsilon and simple_constraint.equality == False: # Inequality: Add epsilon.
         B_row[0] -= EPS
 
-    if c[1] == '=':
+    if simple_constraint.operator == '=':
         A_row.append([x * -1 for x in A_row[0]])
-        B_row.append(-1 * B_row[0])
+        B_row.append(-B_row[0])
 
     return A_row, B_row
 
 if __name__ == '__main__':
-    temp = core.NTA.from_xml('examples/generator/test5_6_2.xml').templates[0]
+    from uppaalpy.classes import NTA
+    temp = NTA.from_xml('examples/generator/test5_6_2.xml').templates[0]
     mypath = convert_to_path(temp, ["l0", 0, "l2", 1, "l3", 2, "l4"])

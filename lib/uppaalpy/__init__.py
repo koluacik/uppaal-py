@@ -1,1 +1,1 @@
-from uppaalpy import core
+from .classes import *
