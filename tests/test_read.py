@@ -1,6 +1,5 @@
 import pytest
 from tests.helpers import *
-#import xml.etree.cElementTree as ET
 import lxml.etree as ET
 
 @pytest.mark.parametrize("fp", broken_xml())

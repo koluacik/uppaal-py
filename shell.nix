@@ -4,6 +4,7 @@ let
     projectDir = ./.;
     editablePackageSources = {
       uppaal-py = ./lib;
+      tests = ./.;
     };
   };
 in myEnv.env

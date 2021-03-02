@@ -1,6 +1,4 @@
 import pytest
-import uppaalpy
-import xml.etree.cElementTree as ET
 from tests.helpers import *
 
 @pytest.mark.parametrize("fp", good_nta() + generator_ntas())

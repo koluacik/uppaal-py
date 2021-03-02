@@ -43,7 +43,7 @@ def epsilon_tests():
     return list_nta_in_dir(file_path)
 
 def read_file(fp):
-    return uppaalpy.core.NTA.from_xml(fp)
+    return uppaalpy.NTA.from_xml(fp)
 
 def write_to_file(nta):
     return nta.to_file('/tmp/out.xml')
@@ -64,5 +64,3 @@ def get_path_from_query_comment(nta):
             state = True
             res.append(int(word))
     return p.convert_to_path(nta.templates[index], res)
-
-
