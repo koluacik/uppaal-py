@@ -1,6 +1,9 @@
-import networkx as nx
+"""Subclass of networkx multidigraph."""
 from itertools import count
+
 import lxml.etree as ET
+import networkx as nx
+
 
 class TAGraph(nx.MultiDiGraph):
     """Derived class of NetworkX MultiDiGraph.
@@ -18,6 +21,11 @@ class TAGraph(nx.MultiDiGraph):
     """
 
     def __init__(self, incoming_graph_data=None, **attr):
+        """Create a TAGraph.
+
+        Superclass initializer is called. Extra attributes are updated/set by
+        methods add_{location,branchpoint,transition}.
+        """
         super().__init__(incoming_graph_data, **attr)
         self.initial_location = ""
         self._named_locations = {}
@@ -30,10 +38,9 @@ class TAGraph(nx.MultiDiGraph):
 
         Only named Locations can be used for path analysis. Named Locations
         are also registered in self._named_locations.
-
         """
         self.add_node((self.template_name, loc.id), obj=loc)
-        if (loc.name != None):
+        if loc.name != None:
             self._named_locations[loc.name.name] = loc
 
     def add_branchpoint(self, bp):
@@ -48,18 +55,16 @@ class TAGraph(nx.MultiDiGraph):
         serializations and constant time lookups.
         """
         self.add_edge(
-                (self.template_name, trans.source),
-                (self.template_name, trans.target),
-                obj=trans,
-                key=next(self._transition_counter))
+            (self.template_name, trans.source),
+            (self.template_name, trans.target),
+            obj=trans,
+            key=next(self._transition_counter),
+        )
         self._transitions.append(trans)
 
     def to_element(self):
         """Convert the multidigraph to an Element."""
-        elements = [data['obj'].to_element() for _, data in \
-                list(self.nodes(data=True))]
-        elements.append(ET.Element('init', \
-                attrib={'ref': self.initial_location}))
+        elements = [data["obj"].to_element() for _, data in list(self.nodes(data=True))]
+        elements.append(ET.Element("init", attrib={"ref": self.initial_location}))
         elements.extend([t.to_element() for t in self._transitions])
         return elements
-

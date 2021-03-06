@@ -1,4 +1,9 @@
-from .simplethings import *
+"""The definition of Transition class resides here."""
+
+import lxml.etree as ET
+
+from .simplethings import Constraint, Label
+
 
 class Transition:
     """Class for edges of the TA.
@@ -10,7 +15,7 @@ class Transition:
         source: String of the form "idX". References locations or branchpoints.
         target: String of the form "idX". References locations or branchpoints.
         select: Label object with kind 'select'. See UPPAAL documentation.
-        guard: Label object with kind 'guard'. See UPPAAL documentation.
+        guard: Constraint object with kind 'guard'. See UPPAAL documentation.
         synchronisation: Label object with kind 'synchronisation'.
             See UPPAAL documentation.
         assignment: Label object with kind 'assignment'. See UPPAAL
@@ -21,52 +26,58 @@ class Transition:
         comments: Label object with kind 'comments'. See UPPAAL
             documentation.
         nails: List of Nail objects.
-        edge_id: Not relevant to UPPAAL. Unlike locations and
-            branchpoints, edges in UPPAAL are not uniquely identified by a
-            certain attribute. For this reason we enumerate them while iterating
-            over the Element object to preserve the order of the edges in the file
-            and also to be able to differentiate them in case there exists more
-            than two edges from a location to another node in the file. The
-            default value of this attribute is -1.
     """
 
     def __init__(self, **kwargs):
-        self.source = kwargs['source']
-        self.target = kwargs['target']
-        self.select = kwargs.get('select')
-        self.guard = kwargs.get('guard')
-        self.synchronisation = kwargs.get('synchronisation')
-        self.assignment = kwargs.get('assignment')
-        self.testcode = kwargs.get('testcode')
-        self.probability = kwargs.get('probability')
-        self.comments = kwargs.get('comments')
-        self.nails = kwargs.get('nails') if kwargs.get('nails') is not None else []
-        self.edge_id = -1
+        """Construct a Transition object from keyword args.
+
+        All arguments except source and target are optional.
+
+        Args:
+            source: String, id of the source location.
+            target: String, id of the target location.
+            select: Label with kind "select". See UPPAAL documentation.
+            guard: Constraint object.
+            synchronisation: Label with kind "synchronisation".
+            testcode: Label with kind "testcode".
+            probability: Label with kind "probability".
+            comments: Label...
+            nails: List of Nail objects.
+        """
+        self.source = kwargs["source"]
+        self.target = kwargs["target"]
+        self.select = kwargs.get("select")
+        self.guard = kwargs.get("guard")
+        self.synchronisation = kwargs.get("synchronisation")
+        self.assignment = kwargs.get("assignment")
+        self.testcode = kwargs.get("testcode")
+        self.probability = kwargs.get("probability")
+        self.comments = kwargs.get("comments")
+        self.nails = kwargs.get("nails") if kwargs.get("nails") is not None else []
 
     @classmethod
     def from_element(cls, et):
         """Construct a Transition from an Element object, and return it."""
         kw = {}
-        kw['source'] = et.find('source').get('ref')
-        kw['target'] = et.find('target').get('ref')
+        kw["source"] = et.find("source").get("ref")
+        kw["target"] = et.find("target").get("ref")
 
-        for label in et.iter('label'):
-            l_kind = label.get('kind')
+        for label in et.iter("label"):
+            l_kind = label.get("kind")
             label_obj = Label.from_element(label)
-            if l_kind == 'guard':
-                label_obj = Constraint(label_obj)
+            if l_kind == "guard":
+                label_obj = Constraint.from_label(label_obj)
             kw[l_kind] = label_obj
 
-        kw['nails'] = [Nail((nail.get('x'), nail.get('y'))) for nail in
-                et.iter('nail')]
+        kw["nails"] = [Nail((nail.get("x"), nail.get("y"))) for nail in et.iter("nail")]
 
         return cls(**kw)
 
     def to_element(self):
-        """Convert this object to an Element. Is extended by Location.to_element."""
-        element = ET.Element('transition')
-        element.append(ET.Element('source', attrib = {'ref': self.source}))
-        element.append(ET.Element('target', attrib = {'ref': self.target}))
+        """Convert this object to an Element."""
+        element = ET.Element("transition")
+        element.append(ET.Element("source", attrib={"ref": self.source}))
+        element.append(ET.Element("target", attrib={"ref": self.target}))
         if self.select is not None:
             element.append(self.select.to_element())
         if self.guard is not None:
@@ -92,6 +103,7 @@ class Transition:
         else:
             return []
 
+
 class Nail:
     """Class for storing 'nails' on the edges of the TA.
 
@@ -100,11 +112,14 @@ class Nail:
     """
 
     def __init__(self, pos):
+        """Construct Nail from an int pair."""
         self.pos = pos
 
     @classmethod
     def from_element(cls, et):
-        return cls((int(et.get('x')), int(et.get('y'))))
+        """Construct Nail from an Element."""
+        return cls((int(et.get("x")), int(et.get("y"))))
 
     def to_element(self):
-        return ET.Element('nail', attrib = {'x': str(self.pos[0]), 'y': str(self.pos[1])})
+        """Construct an element from Nail object."""
+        return ET.Element("nail", attrib={"x": str(self.pos[0]), "y": str(self.pos[1])})

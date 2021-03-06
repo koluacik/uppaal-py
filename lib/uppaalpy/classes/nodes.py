@@ -1,4 +1,9 @@
-from .simplethings import *
+"""Module for definitions of abstract class Node, and subclasses BranchPoint and Location."""
+
+import lxml.etree as ET
+
+from .simplethings import Constraint, Label, Name
+
 
 class Node:
     """Abstract class for nodes of the multidigraph in TA templates.
@@ -11,8 +16,8 @@ class Node:
     """
 
     tag = None
-    id = None
-    pos = None
+    id = "null"
+    pos = (0, 0)
 
     @staticmethod
     def generate_dict(et):
@@ -23,29 +28,32 @@ class Node:
         BranchPoint objects.
         """
         kw = {}
-        kw['id'] = et.get('id')
-        kw['pos'] = int(et.get('x')), int(et.get('y'))
-        kw['name'] = Name.from_element(et.find('name'))
+        kw["id"] = et.get("id")
+        kw["pos"] = int(et.get("x")), int(et.get("y"))
+        kw["name"] = Name.from_element(et.find("name"))
 
-        for label in et.iter('label'):
-            l_kind = label.get('kind')
+        for label in et.iter("label"):
+            l_kind = label.get("kind")
             label_obj = Label.from_element(label)
 
-            if l_kind == 'invariant':
-                label_obj = Constraint(label_obj)
+            if l_kind == "invariant":
+                label_obj = Constraint.from_label(label_obj)
 
             kw[l_kind] = label_obj
 
-        kw['committed'] = et.find('committed') in et
-        kw['urgent'] = et.find('urgent') in et
+        kw["committed"] = et.find("committed") in et
+        kw["urgent"] = et.find("urgent") in et
 
         return kw
 
     def to_element(self):
         """Convert this object to an Element. Is extended by Location.to_element."""
-        element = ET.Element(self.tag, attrib=
-                {'id': self.id, 'x': str(self.pos[0]), 'y': str(self.pos[1])})
+        element = ET.Element(
+            self.tag,
+            attrib={"id": self.id, "x": str(self.pos[0]), "y": str(self.pos[1])},
+        )
         return element
+
 
 class BranchPoint(Node):
     """Derived class of Node.
@@ -53,31 +61,29 @@ class BranchPoint(Node):
     The only extension is the added class attribute tag.
     """
 
-    tag = 'branchpoint'
-
+    tag = "branchpoint"
 
     def __init__(self, **kwargs):
-        self.id = kwargs['id']
-        self.pos = kwargs['pos']
+        """Accept id string and position pair, and generate a Branchpoint."""
+        self.id = kwargs["id"]
+        self.pos = kwargs["pos"]
 
     @classmethod
     def from_element(cls, et):
-        """Generate a dictionary for initialization from et and construct a BP.
-        """
+        """Generate a dictionary for initialization from et and construct a BP."""
         return cls(**super().generate_dict(et))
+
 
 class Location(Node):
     """Derived class of Node.
 
     This class has additional labels and text fields that are not present in
     BranchPoint objects. Refer to the UPPAAL documentation for information
-    on different label kinds. This class does not extend Node.from_element since
-    the method of the superclass already captures all the required information
-    about the location.
+    on different label kinds.
 
     Attributes:
         name: Name object.
-        invariant: Label object for location invariants.
+        invariant: Constraint object for location invariants.
         exponentialrate: Label object. See UPPAAL documentation.
         testcodeEnter: Label object. See UPPAAL documentation.
         testcodeExit: Label object. See UPPAAL documentation.
@@ -86,28 +92,27 @@ class Location(Node):
         urgent: Boolean value for whether the location is urgent.
     """
 
-    tag = 'location'
+    tag = "location"
 
     def __init__(self, **kwargs):
         """Construct a Node from an Element object, and return it.
 
         This method extends Node.__init__.
         """
-        self.id = kwargs['id']
-        self.pos = kwargs['pos']
-        self.name = kwargs.get('name')
-        self.invariant = kwargs.get('invariant')
-        self.exponentialrate = kwargs.get('exponentialrate')
-        self.testcodeEnter = kwargs.get('testcodeEnter')
-        self.testcodeExit = kwargs.get('testcodeExit')
-        self.comments = kwargs.get('comments')
-        self.committed = kwargs.get('is_committed') or False
-        self.urgent = kwargs.get('is_urgent') or False
+        self.id = kwargs["id"]
+        self.pos = kwargs["pos"]
+        self.name = kwargs.get("name")
+        self.invariant = kwargs.get("invariant")
+        self.exponentialrate = kwargs.get("exponentialrate")
+        self.testcodeEnter = kwargs.get("testcodeEnter")
+        self.testcodeExit = kwargs.get("testcodeExit")
+        self.comments = kwargs.get("comments")
+        self.committed = kwargs.get("is_committed") or False
+        self.urgent = kwargs.get("is_urgent") or False
 
     @classmethod
     def from_element(cls, et):
-        """Generate a dictionary for initialization from et and construct a Loc.
-        """
+        """Generate a dictionary for initialization from et and construct a Loc."""
         return cls(**super().generate_dict(et))
 
     def to_element(self):
@@ -129,9 +134,9 @@ class Location(Node):
         if self.comments is not None:
             element.append(self.comments.to_element())
         if self.committed:
-            element.append(ET.Element('committed'))
+            element.append(ET.Element("committed"))
         if self.urgent:
-            element.append(ET.Element('urgent'))
+            element.append(ET.Element("urgent"))
         return element
 
     def get_constraints(self):
