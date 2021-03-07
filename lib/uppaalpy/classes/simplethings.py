@@ -291,7 +291,7 @@ class SimpleConstraint:
         return " ".join(
             [
                 " - ".join(self.clocks),
-                self.operator + "=" if self.equality else "",
+                self.operator + ("=" if self.equality else ""),
                 str(self.threshold),
             ]
         )
