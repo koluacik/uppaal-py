@@ -1,5 +1,3 @@
-#from benchmarks.readwrite import *
-#from .readwrite import *
 from .readwrite import *
 import cProfile
 import pstats
