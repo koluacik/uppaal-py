@@ -1,37 +1,39 @@
-import os
 import uppaalpy
+import os
 from uppaalpy import path as p
+
+testcase_dir = "tests/testcases/"
 
 def list_nta_in_dir(directory):
     return [directory.strip('/') + '/' + x \
             for x in os.listdir(directory) if x.endswith('.xml')]
 
 def broken_xml():
-    file_path = "tests/broken_xml"
+    file_path = testcase_dir + "broken_xml"
     return list_nta_in_dir(file_path)
 
 def broken_nta():
-    file_path = "tests/broken_nta"
+    file_path = testcase_dir + "broken_nta"
     return list_nta_in_dir(file_path)
 
 def good_nta():
-    file_path = "tests/good_nta"
+    file_path = testcase_dir + "good_nta"
     return list_nta_in_dir(file_path)
 
 def reachable_nta():
-    file_path = "tests/path_realizable"
+    file_path = testcase_dir + "path_realizable"
     return list_nta_in_dir(file_path)
 
 def not_reachable_nta():
-    file_path = "tests/path_not_realizable"
+    file_path = testcase_dir + "path_not_realizable"
     return list_nta_in_dir(file_path)
 
 def path_exists():
-    file_path = "tests/path_exists"
+    file_path = testcase_dir + "path_exists"
     return list_nta_in_dir(file_path)
 
 def path_not_exists():
-    file_path = "tests/path_not_exists"
+    file_path = testcase_dir + "path_not_exists"
     return list_nta_in_dir(file_path)
 
 def generator_ntas():
@@ -39,7 +41,7 @@ def generator_ntas():
     return list_nta_in_dir(file_path)
 
 def epsilon_tests():
-    file_path = "tests/epsilon_tests"
+    file_path = testcase_dir + "epsilon_tests"
     return list_nta_in_dir(file_path)
 
 def read_file(fp):
