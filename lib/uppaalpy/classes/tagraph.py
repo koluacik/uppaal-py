@@ -18,9 +18,10 @@ class TAGraph(nx.MultiDiGraph):
         template_name: String for name of the template.
         transition_counter: Iterator for uniquely assigning a uniquely determined
             key to each transition in the MultiDiGraph.
+        template: The parent template.
     """
 
-    def __init__(self, incoming_graph_data=None, **attr):
+    def __init__(self, template, incoming_graph_data=None, **attr):
         """Create a TAGraph.
 
         Superclass initializer is called. Extra attributes are updated/set by
@@ -32,6 +33,7 @@ class TAGraph(nx.MultiDiGraph):
         self._transitions = []
         self.template_name = ""
         self._transition_counter = count()
+        self.template = template
 
     def add_location(self, loc):
         """Insert a Location object.
@@ -39,6 +41,7 @@ class TAGraph(nx.MultiDiGraph):
         Only named Locations can be used for path analysis. Named Locations
         are also registered in self._named_locations.
         """
+        loc.template = self.template
         self.add_node((self.template_name, loc.id), obj=loc)
         if loc.name != None:
             self._named_locations[loc.name.name] = loc
@@ -54,6 +57,7 @@ class TAGraph(nx.MultiDiGraph):
         key to the edge. Also, self._transitions is used for linear time
         serializations and constant time lookups.
         """
+        trans.template = self.template
         self.add_edge(
             (self.template_name, trans.source),
             (self.template_name, trans.target),

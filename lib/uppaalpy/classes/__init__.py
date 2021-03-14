@@ -1,4 +1,11 @@
 """Implementation of classes required for representing UPPAAL TA."""
+from .constraint_patcher import (
+    ConstraintCache,
+    ConstraintChange,
+    ConstraintInsert,
+    ConstraintRemove,
+    ConstraintUpdate,
+)
 from .nodes import BranchPoint, Location
 from .nta import NTA
 from .simplethings import (

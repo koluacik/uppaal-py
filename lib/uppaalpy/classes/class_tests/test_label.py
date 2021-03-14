@@ -10,8 +10,6 @@ from uppaalpy import Label
 from .helpers import list_xml_in_dir, testcase_dir
 
 label_kinds_list = [
-    "invariant",
-    "guard",
     "synchronisation",
     "assignment",
     "exponentialrate",
@@ -39,7 +37,7 @@ def random_label_value():
     return " ".join(words)
 
 
-@pytest.fixture(params=[random_label_value() for _ in range(5)])
+@pytest.fixture(params=[random_label_value() for _ in range(2)])
 def label_value(request):
     """Fixture for label values."""
     return request.param
@@ -50,7 +48,7 @@ def random_position():
     return (random.randint(-100, 100), random.randint(-100, 100))
 
 
-@pytest.fixture(params=[random_position() for _ in range(5)])
+@pytest.fixture(params=[random_position() for _ in range(2)])
 def label_position(request):
     """Fixture for label values."""
     return request.param

@@ -90,6 +90,7 @@ class Location(Node):
         comments: Label object for storing comments.
         committed: Boolean value for whether the location is committed.
         urgent: Boolean value for whether the location is urgent.
+        template: The parent template, set by TAGraph.
     """
 
     tag = "location"
@@ -109,6 +110,7 @@ class Location(Node):
         self.comments = kwargs.get("comments")
         self.committed = kwargs.get("is_committed") or False
         self.urgent = kwargs.get("is_urgent") or False
+        self.template = None
 
     @classmethod
     def from_element(cls, et):

@@ -24,42 +24,46 @@ class Template:
             as attributes.
     """
 
-    def __init__(self, **kwargs):
-        """Construct a Template."""
-        self.name = kwargs.get("name")
-        self.parameter = kwargs.get("parameter")
-        self.declaration = kwargs.get("declaration")
-        self.graph = kwargs.get("graph") or TAGraph()
+    def __init__(self):
+        """Construct a Template.
+
+        Attributes are set by the from_element method.
+        """
+        self.name = Name("", (0, 0))
+        self.parameter = Parameter("")
+        self.declaration = Declaration("")
+        self.graph = TAGraph(self)
 
     @classmethod
     def from_element(cls, et):
         """Convert an Element to a Template object. Called from NTA.from_element."""
-        kw = {}
+        template_obj = cls()
 
-        kw["name"] = Name.from_element(et.find("name"))
-        kw["parameter"] = Parameter.from_element(et.find("parameter"))
-        kw["declaration"] = Declaration.from_element(et.find("declaration"))
-        kw["graph"] = TAGraph()
+        template_obj.name = Name.from_element(et.find("name"))
+        template_obj.parameter = Parameter.from_element(et.find("parameter"))
+        template_obj.declaration = Declaration.from_element(et.find("declaration"))
 
-        t_name = kw["name"].name
+        t_name = template_obj.name.name
 
-        kw["graph"].template_name = t_name
+        template_obj.graph = TAGraph(template_obj)
+        template_obj.graph.template_name = t_name
 
         for l in et.iter("location"):
             loc = Location.from_element(l)
-            kw["graph"].add_location(loc)
+            template_obj.graph.add_location(loc)
 
         for b in et.iter("branchpoint"):
             bp = BranchPoint.from_element(b)
-            kw["graph"].add_branchpoint(bp)
+            template_obj.graph.add_branchpoint(bp)
 
-        kw["graph"].initial_location = et.find("init").get("ref")
+        template_obj.graph.initial_location = et.find("init").get("ref")
 
         for t in et.iter("transition"):
             trans = Transition.from_element(t)
-            kw["graph"].add_transition(trans)
+            template_obj.graph.add_transition(trans)
 
-        return cls(**kw)
+        # return cls(**kw)
+        return template_obj
 
     def to_element(self):
         """Convert this object to an Element. Called from NTA.to_element."""

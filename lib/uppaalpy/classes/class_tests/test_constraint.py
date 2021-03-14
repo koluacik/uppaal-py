@@ -99,9 +99,8 @@ class TestConstraint:
         assert str(c.pos[1]) == constraint_element.get("y")
         assert c.value == constraint_element.text
         properly_spaced_inequality = " && ".join([x.to_string() for x in c.constraints])
-        assert properly_spaced_inequality.replace(
-            " ", ""
-        ) == constraint_element.text.replace(" ", "")
+        inequality = properly_spaced_inequality.replace(" ", "")
+        assert inequality == constraint_element.text.replace(" ", "")
 
     def test_constraint_to_element(self, constraint_element):
         """Test Constraint.to_element."""

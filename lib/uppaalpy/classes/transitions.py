@@ -43,6 +43,7 @@ class Transition:
             probability: Label with kind "probability".
             comments: Label...
             nails: List of Nail objects.
+            template: The parent template. Set by TAGraph.
         """
         self.source = kwargs["source"]
         self.target = kwargs["target"]
@@ -54,6 +55,7 @@ class Transition:
         self.probability = kwargs.get("probability")
         self.comments = kwargs.get("comments")
         self.nails = kwargs.get("nails") if kwargs.get("nails") is not None else []
+        self.template = None
 
     @classmethod
     def from_element(cls, et):

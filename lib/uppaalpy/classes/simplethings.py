@@ -53,7 +53,7 @@ class Label:
 class Constraint(Label):
     """A specific label for invariants or transitions in timed automata.
 
-    The attribute 'parsed' is a list of parsed SimpleConstraint.
+    The attribute constraints is a list of parsed SimpleConstraint.
     It simplifies computations involving constraints. This class overrides
     the Label.to_element() and Label.from_element() methods. self.value
     is ignored after initialization. Also see class SimpleConstraint.
@@ -191,7 +191,9 @@ class Name:
 
     def to_element(self):
         """Convert this object to an Element. Called from NTA.to_element."""
-        element = ET.Element( "name") #, attrib={"x": str(self.pos[0]), "y": str(self.pos[1])})
+        element = ET.Element(
+            "name"
+        )  # , attrib={"x": str(self.pos[0]), "y": str(self.pos[1])})
         element.text = self.name
 
         if self.pos is not None:
@@ -286,12 +288,25 @@ class SimpleConstraint:
         """Split string into simple constraints, return SimpleConstraint list."""
         return [cls.parse_inequality_simple(s) for s in inequality.split("&&")]
 
-    def to_string(self):
-        """Convert the object to a string."""
-        return " ".join(
+    def to_string(self, escape=False):
+        """Convert the object to a string.
+
+        If escape is True '<', '>', etc. will be escaped to make the
+        resulting string xml-friendly.
+        """
+        res = " ".join(
             [
                 " - ".join(self.clocks),
                 self.operator + ("=" if self.equality else ""),
                 str(self.threshold),
             ]
         )
+        if escape:
+            res = (
+                res.replace("&", "&amp;")
+                .replace('"', "&apos;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("'", "&quot;")
+            )
+        return res
