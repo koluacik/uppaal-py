@@ -40,7 +40,7 @@ class ConstraintCache:
 
         def handle_loc(i, loc):
             # Find the line with the relevant location.
-            loc_string = '<template id="%s"' % loc.id
+            loc_string = '<location id="%s"' % loc.id
             while loc_string not in lines[i]:
                 i += 1
             location_line_index = i

@@ -194,7 +194,7 @@ class NTA:
         """
         template = location.template
         if operation == "insert":
-            if location.guard is None:  # Create guard.
+            if location.invariant is None:  # Create invariant.
                 location.invariant = Constraint(
                     "invariant", "", location.pos, [simple_constraint]
                 )
@@ -237,5 +237,5 @@ class NTA:
 
         self.patch_cache.apply_patches(lines)
 
-        with open(out_path) as output_file:
+        with open(out_path, "w") as output_file:
             output_file.writelines(lines)
