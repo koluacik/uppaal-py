@@ -22,7 +22,8 @@ inequalities = [
 class TestSimpleConstraint:
     """SimpleConstraint tests."""
 
-    def test_simple_constraint_init(self):
+    @staticmethod
+    def test_simple_constraint_init():
         """Test SimpleConstraint.__init__."""
         simple_constraint1 = SimpleConstraint(["x"], "<", 10)
         assert simple_constraint1.equality == False
@@ -32,8 +33,9 @@ class TestSimpleConstraint:
         assert simple_constraint2.equality == True
         assert simple_constraint2.clocks == ["x", "y"]
 
+    @staticmethod
     @pytest.mark.parametrize("case", simple_inequalities)
-    def test_simple_constraint_parse_inequality_simple(self, case):
+    def test_simple_constraint_parse_inequality_simple(case):
         """Test SimpleConstraint.parse_inequality_simple."""
         my_input = case[0]
         expected = case[1]
@@ -43,8 +45,9 @@ class TestSimpleConstraint:
         assert my_constraint.threshold == expected[2]
         assert my_constraint.equality == expected[3]
 
+    @staticmethod
     @pytest.mark.parametrize("case", inequalities)
-    def test_simple_constraint_parse_inequality(self, case):
+    def test_simple_constraint_parse_inequality(case):
         """Test SimpleConstraint.parse_inequality."""
         my_input = case[0]
         expected = case[1]
@@ -56,13 +59,15 @@ class TestSimpleConstraint:
             assert cons.threshold == expected[i][2]
             assert cons.equality == expected[i][3]
 
+    @staticmethod
     @pytest.mark.parametrize("case", simple_inequalities)
-    def test_simple_constraint_to_string_simple(self, case):
+    def test_simple_constraint_to_string_simple(case):
         """Test SimpleConstraint.to_string for singular constraints."""
         assert case[0] == SimpleConstraint.parse_inequality_simple(case[0]).to_string()
 
+    @staticmethod
     @pytest.mark.parametrize("case", inequalities)
-    def test_simple_constraint_to_string(self, case):
+    def test_simple_constraint_to_string(case):
         """Test SimpleConstraint.to_string for complex constraints with &&."""
         constraints = SimpleConstraint.parse_inequality(case[0])
         assert case[0] == " && ".join([c.to_string() for c in constraints])

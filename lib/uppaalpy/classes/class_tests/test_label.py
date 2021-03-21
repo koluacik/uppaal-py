@@ -63,21 +63,24 @@ def label_element(request):
 class TestLabel:
     """Label tests."""
 
-    def test_label_init_no_pos(self, label_kind, label_value):
+    @staticmethod
+    def test_label_init_no_pos(label_kind, label_value):
         """Test Label.__init__.
 
         Should not throw exceptions.
         """
         Label(label_kind, label_value)
 
-    def test_label_init_with_pos(self, label_kind, label_value, label_position):
+    @staticmethod
+    def test_label_init_with_pos(label_kind, label_value, label_position):
         """Test Label.__init__.
 
         Should not throw exceptions.
         """
         Label(label_kind, label_value, label_position)
 
-    def test_label_from_element(self, label_element):
+    @staticmethod
+    def test_label_from_element(label_element):
         """Test Label.from_element."""
         my_label = Label.from_element(label_element)
         assert my_label.kind == label_element.get("kind")
@@ -85,7 +88,8 @@ class TestLabel:
         assert str(my_label.pos[1]) == label_element.get("y")
         assert my_label.value == label_element.text
 
-    def test_label_to_element(self, label_element):
+    @staticmethod
+    def test_label_to_element(label_element):
         """Test Label.to_element."""
         my_label = Label.from_element(label_element)
         my_element = my_label.to_element()

@@ -12,7 +12,8 @@ from uppaalpy import NTA
 class TestConstraintPatch:
     """Unit test for ConstraintPatch."""
 
-    def test_constraint_patch_init_transition(self):
+    @staticmethod
+    def test_constraint_patch_init_transition():
         """Test ConstraintPatch()."""
         nta = NTA.from_xml(testcase_dir + "constraint_cache_xml_files/test01.xml")
 
@@ -30,7 +31,8 @@ class TestConstraintPatch:
         assert cp.transition_ref == transition
         assert cp.change == update
 
-    def test_constraint_patch_init_location(self):
+    @staticmethod
+    def test_constraint_patch_init_location():
         """Test ConstraintPatch()."""
         nta = NTA.from_xml(testcase_dir + "constraint_cache_xml_files/test01.xml")
 
@@ -52,7 +54,8 @@ class TestConstraintPatch:
 class TestConstraintCache:
     """Unit tests for ConstraintCache."""
 
-    def test_constraint_cache_init(self):
+    @staticmethod
+    def test_constraint_cache_init():
         """Test ConstraintCache()."""
         nta = NTA.from_xml(testcase_dir + "constraint_cache_xml_files/test01.xml")
         cc = nta.patch_cache
@@ -60,7 +63,8 @@ class TestConstraintCache:
         assert cc.nta == nta
         assert cc.patches == []
 
-    def test_constraint_cache_cache(self):
+    @staticmethod
+    def test_constraint_cache_cache():
         """Test ConstraintCache.cache()."""
         nta = NTA.from_xml(testcase_dir + "constraint_cache_xml_files/test01.xml")
         cc = nta.patch_cache
@@ -78,7 +82,8 @@ class TestConstraintCache:
 
         assert cc.patches == [cp]
 
-    def test_constraint_cache_apply_single_patch(self):
+    @staticmethod
+    def test_constraint_cache_apply_single_patch():
         """Test _apply_single_patch method."""
         nta = NTA.from_xml(testcase_dir + "constraint_cache_xml_files/test01.xml")
         cc = nta.patch_cache

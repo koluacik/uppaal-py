@@ -13,7 +13,8 @@ import pytest
 class TestConstraintChange:
     """Unit tests for ConstraintChange."""
 
-    def test_constraint_change_init(self):
+    @staticmethod
+    def test_constraint_change_init():
         """Test initialization of the base class."""
         c = SimpleConstraint(["x"], ">", 15, False)
         cc = ConstraintChange(c)
@@ -23,28 +24,32 @@ class TestConstraintChange:
 class TestConstraintRemove:
     """Unit tests for ConstraintRemove."""
 
-    def test_constraint_remove_init(self):
+    @staticmethod
+    def test_constraint_remove_init():
         """Test ConstraintRemove() without specifying remove_constraint."""
         c = SimpleConstraint(["x"], ">", 15, False)
         cr = ConstraintRemove(c, remove_constraint=True)
         assert cr.constraint == c
         assert cr.remove_constraint == True
 
-    def test_constraint_remove_init_remove_false(self):
+    @staticmethod
+    def test_constraint_remove_init_remove_false():
         """Test ConstraintRemove() with specifying remove_constraint."""
         c = SimpleConstraint(["x"], ">", 15, False)
         cr = ConstraintRemove(c, remove_constraint=False)
         assert cr.constraint == c
         assert cr.remove_constraint == False
 
-    def test_constraint_remove_init_remove_no_remove_arg(self):
+    @staticmethod
+    def test_constraint_remove_init_remove_no_remove_arg():
         """Test ConstraintRemove() with specifying remove_constraint."""
         c = SimpleConstraint(["x"], ">", 15, False)
         cr = ConstraintRemove(c)
         assert cr.constraint == c
         assert cr.remove_constraint == False
 
-    def test_constraint_remove_find_matching_constraint(self):
+    @staticmethod
+    def test_constraint_remove_find_matching_constraint():
         """Test ConstraintRemove._find_matching_constraint."""
         c = SimpleConstraint(["clock1", "clock2"], "<", 15)
         cr = ConstraintRemove(c)
@@ -58,7 +63,8 @@ class TestConstraintRemove:
         with pytest.raises(Exception):
             assert cr._find_matching_constraint(constraints3)
 
-    def test_constraint_remove_patch_lines_location_basic_without_line_removal(self):
+    @staticmethod
+    def test_constraint_remove_patch_lines_location_basic_without_line_removal():
         """Test patch_line method on locations. The invariant will be removed."""
         lines = [
             '		<location id="id0" x="0" y="0">',
@@ -78,7 +84,8 @@ class TestConstraintRemove:
 
         assert lines == lines_expected
 
-    def test_constraint_remove_patch_lines_location_basic_with_line_removal(self):
+    @staticmethod
+    def test_constraint_remove_patch_lines_location_basic_with_line_removal():
         """Test patch_line method on locations. The invariant won't be removed."""
         lines = [
             '		<location id="id0" x="0" y="0">',
@@ -99,7 +106,8 @@ class TestConstraintRemove:
 
         assert lines == lines_expected
 
-    def test_constraint_remove_patch_lines_location_with_other_labels(self):
+    @staticmethod
+    def test_constraint_remove_patch_lines_location_with_other_labels():
         """Test patch_line method on locations with other labels."""
         lines = [
             '		<location id="id0" x="0" y="0">',
@@ -141,7 +149,8 @@ class TestConstraintRemove:
 
         assert lines == lines_expected
 
-    def test_constraint_remove_patch_lines_transition(self):
+    @staticmethod
+    def test_constraint_remove_patch_lines_transition():
         """Test patch_line method on transitions."""
         lines = [
             "		<transition>",
@@ -192,14 +201,16 @@ class TestConstraintRemove:
 class TestConstraintInsert:
     """Unit tests for ConstraintInsert."""
 
-    def test_constraint_insert_init(self):
+    @staticmethod
+    def test_constraint_insert_init():
         """Test ConstraintInsert()."""
         c = SimpleConstraint(["x", "y"], "<", 5, True)
         ci = ConstraintInsert(c)
         assert ci.constraint == c
         assert ci.newly_created == None
 
-    def test_constraint_insert_init_with_new(self):
+    @staticmethod
+    def test_constraint_insert_init_with_new():
         """Test ConstraintInsert(), with newly_created set."""
         c = SimpleConstraint(["x", "y"], "<", 5, True)
         guard = Constraint("invariant", "", (0, 0), [c])
@@ -207,7 +218,8 @@ class TestConstraintInsert:
         assert ci.constraint == c
         assert ci.newly_created == guard
 
-    def test_constraint_insert_patch_lines_location_basic_no_prior_invariant(self):
+    @staticmethod
+    def test_constraint_insert_patch_lines_location_basic_no_prior_invariant():
         """Test patch_line on locations, creating a new invariant."""
         lines = [
             '		<location id="id0" x="0" y="0">',
@@ -227,7 +239,8 @@ class TestConstraintInsert:
 
         assert lines == lines_expected
 
-    def test_constraint_insert_patch_lines_location_basic_with_prior_invariant(self):
+    @staticmethod
+    def test_constraint_insert_patch_lines_location_basic_with_prior_invariant():
         """Test patch_line on locations, without creating a new invariant."""
         lines = [
             '		<location id="id0" x="0" y="0">',
@@ -247,7 +260,8 @@ class TestConstraintInsert:
 
         assert lines == lines_expected
 
-    def test_constraint_insert_patch_lines_transition(self):
+    @staticmethod
+    def test_constraint_insert_patch_lines_transition():
         """Test patch_line on transitions."""
         lines = [
             "		<transition>",
@@ -299,7 +313,8 @@ class TestConstraintInsert:
 class TestConstraintUpdate:
     """Unit tests for ConstraintUpdate."""
 
-    def test_constraint_update_init(self):
+    @staticmethod
+    def test_constraint_update_init():
         """Test ConstraintUpdate()."""
         c = SimpleConstraint(["x"], ">", 13, False)
         cu = ConstraintUpdate(c, 10, 13)
@@ -308,7 +323,8 @@ class TestConstraintUpdate:
         assert cu.old == 10
         assert cu.new == 13
 
-    def test_constraint_update_find_matching_constraint(self):
+    @staticmethod
+    def test_constraint_update_find_matching_constraint():
         """Test _find_matching_constraint method."""
         c = SimpleConstraint(["x"], ">", 13, False)
         cu = ConstraintUpdate(c, 10, 13)
@@ -322,7 +338,8 @@ class TestConstraintUpdate:
         with pytest.raises(Exception):
             assert cu._find_matching_constraint(constraints3)
 
-    def test_constraint_update_patch_line_location(self):
+    @staticmethod
+    def test_constraint_update_patch_line_location():
         """Test patch_line method on locations."""
         lines = [
             '		<location id="id0" x="0" y="0">',

@@ -53,15 +53,17 @@ def constraint_element(request):
 class TestConstraint:
     """Constraint tests."""
 
+    @staticmethod
     def test_constraint_init_without_constraints(
-        self, label_kind, label_pos, label_value
+        label_kind, label_pos, label_value
     ):
         """Test Constraint.__init__ by parsing value attribute."""
         c = Constraint(label_kind, label_value, label_pos)
         assert c.to_element().text == label_value
 
+    @staticmethod
     def test_constraint_init_with_constraints(
-        self, label_kind, label_pos, label_value, label_constraints
+        label_kind, label_pos, label_value, label_constraints
     ):
         """Test Constraint.__init__, with provided constraints."""
         c1 = Constraint(
@@ -77,21 +79,24 @@ class TestConstraint:
             assert sc1.operator == sc2.operator
             assert sc1.threshold == sc2.threshold
 
-    def test_constraint_from_label_without_constrains(self, label):
+    @staticmethod
+    def test_constraint_from_label_without_constrains(label):
         """Test converting Label to Constraint."""
         c = Constraint.from_label(label)
         assert c.kind == label.kind
         assert c.pos == label.pos
         assert " && ".join([x.to_string() for x in c.constraints]) == label.value
 
-    def test_constraint_from_label_with_constraints(self, label, label_constraints):
+    @staticmethod
+    def test_constraint_from_label_with_constraints(label, label_constraints):
         """Test converting Label to Constraint with additional constraints."""
         c = Constraint.from_label(label, label_constraints)
         assert c.kind == label.kind
         assert c.pos == label.pos
         assert " && ".join([x.to_string() for x in c.constraints]) == label.value
 
-    def test_constraint_from_element(self, constraint_element):
+    @staticmethod
+    def test_constraint_from_element(constraint_element):
         """Test Contraint.from_element."""
         c = Constraint.from_element(constraint_element)
         assert c.kind == constraint_element.get("kind")
@@ -102,7 +107,8 @@ class TestConstraint:
         inequality = properly_spaced_inequality.replace(" ", "")
         assert inequality == constraint_element.text.replace(" ", "")
 
-    def test_constraint_to_element(self, constraint_element):
+    @staticmethod
+    def test_constraint_to_element(constraint_element):
         """Test Constraint.to_element."""
         c_element = Constraint.from_element(constraint_element).to_element()
         assert c_element.get("kind") == constraint_element.get("kind")
