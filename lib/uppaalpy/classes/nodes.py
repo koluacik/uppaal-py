@@ -108,8 +108,8 @@ class Location(Node):
         self.testcodeEnter = kwargs.get("testcodeEnter")
         self.testcodeExit = kwargs.get("testcodeExit")
         self.comments = kwargs.get("comments")
-        self.committed = kwargs.get("is_committed") or False
-        self.urgent = kwargs.get("is_urgent") or False
+        self.committed = kwargs.get("committed") or False
+        self.urgent = kwargs.get("urgent") or False
         self.template = None
 
     @classmethod
