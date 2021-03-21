@@ -71,7 +71,7 @@ class Transition:
                 label_obj = Constraint.from_label(label_obj)
             kw[l_kind] = label_obj
 
-        kw["nails"] = [Nail((nail.get("x"), nail.get("y"))) for nail in et.iter("nail")]
+        kw["nails"] = [Nail(int(nail.get("x")), int(nail.get("y"))) for nail in et.iter("nail")]
 
         return cls(**kw)
 
@@ -113,14 +113,19 @@ class Nail:
         pos: Pair of ints.
     """
 
-    def __init__(self, pos):
-        """Construct Nail from an int pair."""
-        self.pos = pos
+    def __init__(self, x, y):
+        """Construct Nail from an int pair.
+
+        Args:
+            x: Int, the x comp. of the position of the Nail.
+            y: Int, the y comp. of the position of the Nail.
+        """
+        self.pos = x, y
 
     @classmethod
     def from_element(cls, et):
         """Construct Nail from an Element."""
-        return cls((int(et.get("x")), int(et.get("y"))))
+        return cls(int(et.get("x")), int(et.get("y")))
 
     def to_element(self):
         """Construct an element from Nail object."""
