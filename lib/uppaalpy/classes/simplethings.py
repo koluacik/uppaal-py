@@ -59,7 +59,7 @@ class Constraint(Label):
     is ignored after initialization. Also see class SimpleConstraint.
 
     Extra Attributes:
-        parsed: List of SimpleConstraint.
+        constraints: List of SimpleConstraint.
     """
 
     def __init__(self, kind, value, pos, constraints=[]):
