@@ -3,10 +3,10 @@
 A complete NTA object is required to test these classes.
 """
 
-from uppaalpy.classes.constraint_patcher import ConstraintPatch, ConstraintUpdate
-from .helpers import testcase_dir
-
 from uppaalpy import NTA
+from uppaalpy.classes.constraint_patcher import ConstraintPatch, ConstraintUpdate
+
+from .helpers import testcase_dir
 
 
 class TestConstraintPatch:

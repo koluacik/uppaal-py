@@ -1,9 +1,9 @@
 """Class definition of UPPAAL NTA."""
 import lxml.etree as ET
 
-from .simplethings import Declaration, Query, SystemDeclaration, Constraint
-from .templates import Template
 from .constraint_patcher import *
+from .simplethings import Constraint, Declaration, Query, SystemDeclaration
+from .templates import Template
 
 
 class NTA:

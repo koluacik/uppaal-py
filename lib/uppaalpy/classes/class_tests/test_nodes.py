@@ -1,6 +1,7 @@
 """Unit tests for Locations and BranchPoints."""
 import lxml.etree as ET
 import pytest
+
 from uppaalpy.classes.nodes import BranchPoint, Location, Node
 from uppaalpy.classes.simplethings import Constraint, Name
 
@@ -269,7 +270,8 @@ class TestLocation:
     @staticmethod
     def test_location_get_constrasints():
         """Test Location.get_constraints()."""
-        l1 = Location.from_element( ET.fromstring(
+        l1 = Location.from_element(
+            ET.fromstring(
                 """
         <location id="id1" x="192" y="384">
             <name x="208" y="392">Stop</name>

@@ -1,7 +1,8 @@
 """Unit tests for SimpleConstraint class."""
 
-from uppaalpy import SimpleConstraint
 import pytest
+
+from uppaalpy import SimpleConstraint
 
 simple_inequalities = [
     ("x - y < 10", (["x", "y"], "<", 10, False)),

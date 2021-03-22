@@ -71,7 +71,9 @@ class Transition:
                 label_obj = Constraint.from_label(label_obj)
             kw[l_kind] = label_obj
 
-        kw["nails"] = [Nail(int(nail.get("x")), int(nail.get("y"))) for nail in et.iter("nail")]
+        kw["nails"] = [
+            Nail(int(nail.get("x")), int(nail.get("y"))) for nail in et.iter("nail")
+        ]
 
         return cls(**kw)
 

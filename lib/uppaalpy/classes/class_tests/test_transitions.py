@@ -1,8 +1,8 @@
 """Unit tests for Locations and BranchPoints."""
 import lxml.etree as ET
 import pytest
-from uppaalpy.classes.simplethings import Constraint
 
+from uppaalpy.classes.simplethings import Constraint
 from uppaalpy.classes.transitions import Nail, Transition
 
 

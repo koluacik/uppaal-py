@@ -54,9 +54,7 @@ class TestConstraint:
     """Constraint tests."""
 
     @staticmethod
-    def test_constraint_init_without_constraints(
-        label_kind, label_pos, label_value
-    ):
+    def test_constraint_init_without_constraints(label_kind, label_pos, label_value):
         """Test Constraint.__init__ by parsing value attribute."""
         c = Constraint(label_kind, label_value, label_pos)
         assert c.to_element().text == label_value
@@ -114,6 +112,6 @@ class TestConstraint:
         assert c_element.get("kind") == constraint_element.get("kind")
         assert c_element.get("x") == constraint_element.get("x")
         assert c_element.get("y") == constraint_element.get("y")
-        assert c_element.text.replace(
+        assert c_element.text.replace(" ", "") == constraint_element.text.replace(
             " ", ""
-        ) == constraint_element.text.replace(" ", "")
+        )

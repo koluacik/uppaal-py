@@ -1,13 +1,15 @@
 """Unit tests for ConstraintChange and its subclasses."""
 
-from uppaalpy.classes.constraint_patcher import (
-    ConstraintRemove,
-    ConstraintInsert,
-    ConstraintChange,
-    ConstraintInsert, ConstraintUpdate,
-)
-from uppaalpy import SimpleConstraint, Constraint
 import pytest
+
+from uppaalpy import Constraint, SimpleConstraint
+from uppaalpy.classes.constraint_patcher import (
+    ConstraintChange,
+    ConstraintInsert,
+    ConstraintInsert,
+    ConstraintRemove,
+    ConstraintUpdate,
+)
 
 
 class TestConstraintChange:
@@ -358,4 +360,3 @@ class TestConstraintUpdate:
         cu.patch_line(lines, 1)
 
         assert lines == lines_expected
-
