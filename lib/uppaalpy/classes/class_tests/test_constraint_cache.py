@@ -23,7 +23,7 @@ class TestConstraintPatch:
         transition = template.graph._transitions[0]  # First transition
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 10, 15)
+        update = ConstraintUpdate(constraints[0], 15)
 
         cp = ConstraintPatch(template, update, transition_ref=transition)
 
@@ -42,7 +42,7 @@ class TestConstraintPatch:
         location = template.graph._named_locations["l0"]
         constraints = location.invariant.constraints
 
-        update = ConstraintUpdate(constraints[0], 10, 15)
+        update = ConstraintUpdate(constraints[0], 15)
 
         cp = ConstraintPatch(template, update, location_ref=location)
 
@@ -75,7 +75,7 @@ class TestConstraintCache:
         transition = template.graph._transitions[0]  # First template
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 10, 15)
+        update = ConstraintUpdate(constraints[0], 15)
 
         cp = ConstraintPatch(template, update, transition_ref=transition)
         cc.cache(cp)
@@ -94,7 +94,7 @@ class TestConstraintCache:
         transition = template.graph._transitions[0]  # First template
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 10, 15)
+        update = ConstraintUpdate(constraints[0], 15)
 
         cp = ConstraintPatch(template, update, transition_ref=transition)
         cc.cache(cp)

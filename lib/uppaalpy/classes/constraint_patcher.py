@@ -1,6 +1,9 @@
 """Class definitions for fast constraint changes."""
 
 
+from uppaalpy.classes.simplethings import SimpleConstraint
+
+
 class ConstraintCache:
     """Class for line based constraint changes.
 
@@ -66,9 +69,7 @@ class ConstraintCache:
 
         def handle_trans(i, trans):
             # Find the line with the relevant transition.
-            trans_index = trans.template.graph._transitions.index(
-                patch.transition_ref
-            )
+            trans_index = trans.template.graph._transitions.index(patch.transition_ref)
             curr_trans = -1
             while curr_trans < trans_index:
                 if lines[i].strip().startswith("<transition>"):
@@ -79,7 +80,7 @@ class ConstraintCache:
             # create a new line for the new guard label. It should be
             # inserted just after the Name label, if one exists, and before
             # all the other labels.
-            target_index = transition_line_index
+            target_index = transition_line_index + 1  # skip source and target lines
 
             # Find the guard line, if it exists.
             while True:
@@ -89,7 +90,7 @@ class ConstraintCache:
                 if line.startswith('<label kind="guard"'):  # Guard found.
                     target_index = i
                     break
-                if line.startswith("</location>"):  # No invariant
+                if line.startswith("</transition>"):  # No invariant
                     break
                 i += 1
 
@@ -181,9 +182,6 @@ class ConstraintRemove(ConstraintChange):
                 + " &amp;&amp; ".join(constraints)
                 + constraint_line[end:]
             )
-            print("st", constraint_line[:start])
-            print("mi", " &amp;&amp; ".join(constraints))
-            print("en", constraint_line[end:])
 
     def _find_matching_constraint(self, constraints):
         """Find the index of the constraint to be deleted.
@@ -257,10 +255,10 @@ class ConstraintInsert(ConstraintChange):
 class ConstraintUpdate(ConstraintChange):
     """Class for keeping track of a constraint update."""
 
-    def __init__(self, constraint, old_threshold, new_threshold):
+    def __init__(self, constraint, new_threshold):
         """Initialize class with the new and the old thresholds."""
         super().__init__(constraint)
-        self.old = old_threshold
+        self.old = constraint.threshold
         self.new = new_threshold
 
     def patch_line(self, lines, index, parent_index=-1):
@@ -273,7 +271,7 @@ class ConstraintUpdate(ConstraintChange):
         """
         constraint_line = lines[index]
         start = constraint_line.index(">") + 1  # '>' in ...y="..">
-        end = constraint_line.index(">", start)  # '<' in </label>
+        end = constraint_line.index("<", start)  # '<' in </label>
         constraints = constraint_line[start:end].split(" &amp;&amp; ")
         update_index = self._find_matching_constraint(constraints)
         constraints[update_index] = constraints[update_index].replace(
@@ -286,7 +284,7 @@ class ConstraintUpdate(ConstraintChange):
         )
 
     def _find_matching_constraint(self, constraints):
-        """Find the index of the constraint to be deleted.
+        """Find the index of the constraint to be updated.
 
         Each string is compared with the constraint to be updated.
         """
@@ -294,7 +292,7 @@ class ConstraintUpdate(ConstraintChange):
         comparison_string = (
             self.constraint.to_string(escape=True)
             .replace(" ", "")
-            .replace(str(self.new), str(self.old))
+            .replace(str(self.constraint.threshold), str(self.old))
         )
 
         for i, c in enumerate(constraints):
@@ -306,3 +304,8 @@ class ConstraintUpdate(ConstraintChange):
                 comp=comparison_string, lst=constraints
             )
         )
+
+    def generate_new_constraint(self):
+        """Create a SimpleConstraint with the updated threshold."""
+        c = self.constraint
+        return SimpleConstraint(c.clocks, c.operator, self.new, c.equality)

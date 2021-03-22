@@ -171,10 +171,13 @@ class NTA:
                 new = threshold_function(old)
             else:
                 new = threshold_delta + old
-            change = ConstraintUpdate(simple_constraint, old, new)
-            simple_constraint.threshold = new
+            change = ConstraintUpdate(simple_constraint, new)
+            guard_cs = transition.guard.constraints
+            index = guard_cs.index(simple_constraint)
+            guard_cs.pop(index)
+            guard_cs.insert(index, change.generate_new_constraint())
 
-        patch = ConstraintPatch(template, change, transition)
+        patch = ConstraintPatch(template, change, transition_ref=transition)
         self.patch_cache.cache(patch)
 
     def change_location_constraint(
@@ -219,10 +222,13 @@ class NTA:
                 new = threshold_function(old)
             else:
                 new = threshold_delta + old
-            change = ConstraintUpdate(simple_constraint, old, new)
-            simple_constraint.threshold = new
+            change = ConstraintUpdate(simple_constraint, new)
+            inv_cs = location.invariant.constraints
+            index = inv_cs.index(simple_constraint)
+            inv_cs.pop(index)
+            inv_cs.insert(index, change.generate_new_constraint())
 
-        patch = ConstraintPatch(template, change, location)
+        patch = ConstraintPatch(template, change, location_ref=location)
         self.patch_cache.cache(patch)
 
     def flush_constraint_changes(self, out_path):

@@ -68,7 +68,11 @@ class TAGraph(nx.MultiDiGraph):
 
     def to_element(self):
         """Convert the multidigraph to an Element."""
-        elements = [data["obj"].to_element() for _, data in list(self.nodes(data=True))]
+        elements = [n.to_element() for n in self.get_nodes()]
         elements.append(ET.Element("init", attrib={"ref": self.initial_location}))
         elements.extend([t.to_element() for t in self._transitions])
         return elements
+
+    def get_nodes(self):
+        """Get the list of nodes. Also includes branchpoints."""
+        return [data["obj"] for _, data in list(self.nodes(data=True))]

@@ -316,8 +316,8 @@ class TestConstraintUpdate:
     @staticmethod
     def test_constraint_update_init():
         """Test ConstraintUpdate()."""
-        c = SimpleConstraint(["x"], ">", 13, False)
-        cu = ConstraintUpdate(c, 10, 13)
+        c = SimpleConstraint(["x"], ">", 10, False)
+        cu = ConstraintUpdate(c, 13)
 
         assert cu.constraint == c
         assert cu.old == 10
@@ -326,8 +326,8 @@ class TestConstraintUpdate:
     @staticmethod
     def test_constraint_update_find_matching_constraint():
         """Test _find_matching_constraint method."""
-        c = SimpleConstraint(["x"], ">", 13, False)
-        cu = ConstraintUpdate(c, 10, 13)
+        c = SimpleConstraint(["x"], ">", 10, False)
+        cu = ConstraintUpdate(c, 13)
 
         constraints1 = ["x &gt; 10"]
         constraints2 = ["x == 10", "x &gt; 10"]
@@ -353,8 +353,8 @@ class TestConstraintUpdate:
             "		</location>",
         ]
 
-        c = SimpleConstraint(["x"], "<", 10, False)
-        cu = ConstraintUpdate(c, 5, 10)  # Replace threshold 5 with 10.
+        c = SimpleConstraint(["x"], "<", 5, False)
+        cu = ConstraintUpdate(c, 10)  # Replace threshold 5 with 10.
         cu.patch_line(lines, 1)
 
         assert lines == lines_expected
