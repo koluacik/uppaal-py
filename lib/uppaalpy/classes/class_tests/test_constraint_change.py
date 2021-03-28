@@ -69,15 +69,15 @@ class TestConstraintRemove:
     def test_constraint_remove_patch_lines_location_basic_without_line_removal():
         """Test patch_line method on locations. The invariant will be removed."""
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x &lt; 5 &amp;&amp; y &lt; 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x &lt; 5 &amp;&amp; y &lt; 5</label>\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">y &lt; 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">y &lt; 5</label>\n',
+            "		</location>\n",
         ]
 
         c = SimpleConstraint(["x"], "<", 5, False)
@@ -90,14 +90,14 @@ class TestConstraintRemove:
     def test_constraint_remove_patch_lines_location_basic_with_line_removal():
         """Test patch_line method on locations. The invariant won't be removed."""
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x &lt; 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x &lt; 5</label>\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            "		</location>\n",
         ]
 
         # There is a single constraint on this location. Upon removal of it,
@@ -112,16 +112,16 @@ class TestConstraintRemove:
     def test_constraint_remove_patch_lines_location_with_other_labels():
         """Test patch_line method on locations with other labels."""
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="name" x="18" y="-34">location0</label>',
-            '			<label kind="invariant" x="18" y="-34">x &lt; 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="name" x="18" y="-34">location0</label>\n',
+            '			<label kind="invariant" x="18" y="-34">x &lt; 5</label>\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="name" x="18" y="-34">location0</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="name" x="18" y="-34">location0</label>\n',
+            "		</location>\n",
         ]
 
         c = SimpleConstraint(["x"], "<", 5, False)
@@ -131,18 +131,18 @@ class TestConstraintRemove:
         assert lines == lines_expected
 
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="name" x="18" y="-34">location0</label>',
-            '			<label kind="invariant" x="18" y="-34">x &lt; 5</label>',
-            '			<label kind="exponentialrate" x="18" y="-34">foo</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="name" x="18" y="-34">location0</label>\n',
+            '			<label kind="invariant" x="18" y="-34">x &lt; 5</label>\n',
+            '			<label kind="exponentialrate" x="18" y="-34">foo</label>\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="name" x="18" y="-34">location0</label>',
-            '			<label kind="exponentialrate" x="18" y="-34">foo</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="name" x="18" y="-34">location0</label>\n',
+            '			<label kind="exponentialrate" x="18" y="-34">foo</label>\n',
+            "		</location>\n",
         ]
 
         c = SimpleConstraint(["x"], "<", 5, False)
@@ -155,18 +155,18 @@ class TestConstraintRemove:
     def test_constraint_remove_patch_lines_transition():
         """Test patch_line method on transitions."""
         lines = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            '			<label kind="guard" x="18" y="-34">clock == 5</label>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            '			<label kind="guard" x="18" y="-34">clock == 5</label>\n',
+            "		</transition>\n",
         ]
 
         lines_expected = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            "		</transition>\n",
         ]
 
         c = SimpleConstraint(["x"], "=", 5, True)
@@ -176,21 +176,21 @@ class TestConstraintRemove:
         assert lines == lines_expected
 
         lines = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            '			<label kind="guard" x="18" y="-34">clock2 == 5 &amp;&amp; clock == 5</label>',
-            '			<label kind="synchronisation" x="18" y="-34">foo</label>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            '			<label kind="guard" x="18" y="-34">clock2 == 5 &amp;&amp; clock == 5</label>\n',
+            '			<label kind="synchronisation" x="18" y="-34">foo</label>\n',
+            "		</transition>\n",
         ]
 
         lines_expected = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            '			<label kind="guard" x="18" y="-34">clock2 == 5</label>',
-            '			<label kind="synchronisation" x="18" y="-34">foo</label>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            '			<label kind="guard" x="18" y="-34">clock2 == 5</label>\n',
+            '			<label kind="synchronisation" x="18" y="-34">foo</label>\n',
+            "		</transition>\n",
         ]
 
         c = SimpleConstraint(["clock"], "=", 5, True)
@@ -224,14 +224,14 @@ class TestConstraintInsert:
     def test_constraint_insert_patch_lines_location_basic_no_prior_invariant():
         """Test patch_line on locations, creating a new invariant."""
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5</label>\n',
+            "		</location>\n",
         ]
 
         c = SimpleConstraint(["x", "y"], "<", 5, True)
@@ -245,15 +245,15 @@ class TestConstraintInsert:
     def test_constraint_insert_patch_lines_location_basic_with_prior_invariant():
         """Test patch_line on locations, without creating a new invariant."""
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5</label>\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5 &amp;&amp; c == 3</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5 &amp;&amp; c == 3</label>\n',
+            "		</location>\n",
         ]
 
         c = SimpleConstraint(["c"], "=", 3, True)
@@ -266,18 +266,18 @@ class TestConstraintInsert:
     def test_constraint_insert_patch_lines_transition():
         """Test patch_line on transitions."""
         lines = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            "		</transition>\n",
         ]
 
         lines_expected = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            '			<label kind="guard" x="18" y="-34">clock == 5</label>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            '			<label kind="guard" x="18" y="-34">clock == 5</label>\n',
+            "		</transition>\n",
         ]
 
         c = SimpleConstraint(["clock"], "=", 5, True)
@@ -288,21 +288,21 @@ class TestConstraintInsert:
         assert lines == lines_expected
 
         lines = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            '			<label kind="guard" x="18" y="-34">clock2 == 5</label>',
-            '			<label kind="synchronisation" x="18" y="-34">foo</label>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            '			<label kind="guard" x="18" y="-34">clock2 == 5</label>\n',
+            '			<label kind="synchronisation" x="18" y="-34">foo</label>\n',
+            "		</transition>\n",
         ]
 
         lines_expected = [
-            "		<transition>",
-            '			<source ref="id0"/>',
-            '			<source ref="id1"/>',
-            '			<label kind="guard" x="18" y="-34">clock2 == 5 &amp;&amp; clock == 5</label>',
-            '			<label kind="synchronisation" x="18" y="-34">foo</label>',
-            "		</transition>",
+            "		<transition>\n",
+            '			<source ref="id0"/>\n',
+            '			<source ref="id1"/>\n',
+            '			<label kind="guard" x="18" y="-34">clock2 == 5 &amp;&amp; clock == 5</label>\n',
+            '			<label kind="synchronisation" x="18" y="-34">foo</label>\n',
+            "		</transition>\n",
         ]
 
         c = SimpleConstraint(["clock"], "=", 5, True)
@@ -344,15 +344,15 @@ class TestConstraintUpdate:
     def test_constraint_update_patch_line_location():
         """Test patch_line method on locations."""
         lines = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x &lt; 5 &amp;&amp; y &lt; 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x &lt; 5 &amp;&amp; y &lt; 5</label>\n',
+            "		</location>\n",
         ]
 
         lines_expected = [
-            '		<location id="id0" x="0" y="0">',
-            '			<label kind="invariant" x="18" y="-34">x &lt; 10 &amp;&amp; y &lt; 5</label>',
-            "		</location>",
+            '		<location id="id0" x="0" y="0">\n',
+            '			<label kind="invariant" x="18" y="-34">x &lt; 10 &amp;&amp; y &lt; 5</label>\n',
+            "		</location>\n",
         ]
 
         c = SimpleConstraint(["x"], "<", 5, False)

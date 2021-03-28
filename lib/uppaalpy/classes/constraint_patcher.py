@@ -56,7 +56,8 @@ class ConstraintCache:
             # Find the invariant line, if it exists.
             while True:
                 line = lines[i].strip()
-                if line.startswith('<label kind="name"'):
+                if line.startswith('<name x="'):
+                    # Invariant comes after name.
                     target_index = i
                 if line.startswith('<label kind="invariant"'):  # Invariant found.
                     target_index = i
@@ -75,17 +76,18 @@ class ConstraintCache:
                 if lines[i].strip().startswith("<transition>"):
                     curr_trans += 1
                 i += 1
-            transition_line_index = i
+            transition_line_index = i - 1
             # If no guard exists for this tranisiton in the file,
             # create a new line for the new guard label. It should be
             # inserted just after the Name label, if one exists, and before
             # all the other labels.
-            target_index = transition_line_index + 1  # skip source and target lines
+            target_index = transition_line_index + 2  # skip source and target lines
 
             # Find the guard line, if it exists.
             while True:
                 line = lines[i].strip()
-                if line.startswith('<label kind="name"'):
+                if line.startswith('<label kind="select"'):
+                    # Guard comes after select.
                     target_index = i
                 if line.startswith('<label kind="guard"'):  # Guard found.
                     target_index = i
@@ -230,7 +232,7 @@ class ConstraintInsert(ConstraintChange):
             tabs = lines[parent_index].index("<") + 1
             string = (
                 tabs * "\t"
-                + '<label kind="{kind}" x="{x}" y="{y}">{text}</label>'.format(
+                + '<label kind="{kind}" x="{x}" y="{y}">{text}</label>\n'.format(
                     kind=self.newly_created.kind,
                     x=str(self.newly_created.pos[0]),
                     y=str(self.newly_created.pos[1]),
