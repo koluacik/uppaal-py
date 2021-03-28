@@ -18,6 +18,7 @@ class NTA:
             here for fast write operations.
         _associated_file: String for denoting the path of the file read. Used
             by constraint patcher. Set by the from_xml method.
+        _doctype: String for xml doctype. Set by from_xml, and used by to_file.
 
     """
 
@@ -33,12 +34,15 @@ class NTA:
         self.queries = kwargs["queries"]
         self.patch_cache = ConstraintCache(self)
         self._associated_file = ""
+        self._doctype = ""
 
     @classmethod
     def from_xml(cls, path):
         """Given a xml file path, construct an NTA from that xml file."""
-        obj = cls.from_element(ET.parse(path).getroot())
+        et = ET.parse(path)
+        obj = cls.from_element(et.getroot())
         obj._associated_file = path
+        obj._doctype = et.docinfo.doctype
         return obj
 
     @classmethod
@@ -76,15 +80,18 @@ class NTA:
 
         return root
 
-    def to_file(self, path, pretty=False):
+    def to_file(self, path):
         """Convert the NTA to an element tree and write it into a file.
+
+        File will be printed with pretty printing and '\\t' indentation.
 
         Args:
             path: String denoting the path of the output file.
-            pretty: Whether to pretty print.
         """
-        (ET.ElementTree(self.to_element())).write(
-            path, encoding="utf-8", pretty_print=pretty
+        elm = self.to_element()
+        ET.indent(elm, "\t")
+        ET.ElementTree(elm).write(
+            path, encoding="utf-8", xml_declaration=True, doctype=self._doctype
         )
 
     def change_transition_constraint(
