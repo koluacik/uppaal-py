@@ -82,6 +82,8 @@ class Location(Node):
     on different label kinds.
 
     Attributes:
+        id: id string.
+        pos: Int pair.
         name: Name object.
         invariant: Constraint object for location invariants.
         exponentialrate: Label object. See UPPAAL documentation.
