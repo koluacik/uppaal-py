@@ -1,6 +1,6 @@
 """Template class definition.
 
-Each template in an NTA represents a Distinct TA recipe.
+Each template in an NTA represents a Distinct TA "recipe".
 """
 import lxml.etree as ET
 
@@ -62,7 +62,6 @@ class Template:
             trans = Transition.from_element(t)
             template_obj.graph.add_transition(trans)
 
-        # return cls(**kw)
         return template_obj
 
     def to_element(self):

@@ -81,9 +81,9 @@ class NTA:
         return root
 
     def to_file(self, path):
-        """Convert the NTA to an element tree and write it into a file.
+        r"""Convert the NTA to an element tree and write it into a file.
 
-        File will be printed with pretty printing and '\\t' indentation.
+        File will be printed with pretty printing and '\t' indentation.
 
         Args:
             path: String denoting the path of the output file.

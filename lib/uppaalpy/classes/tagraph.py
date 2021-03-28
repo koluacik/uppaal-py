@@ -24,7 +24,8 @@ class TAGraph(nx.MultiDiGraph):
     def __init__(self, template, incoming_graph_data=None, **attr):
         """Create a TAGraph.
 
-        Superclass initializer is called. Extra attributes are updated/set by
+        Superclass initializer is called. Template name and object are set
+        by Template.from_element(). Other attributes are updated/set by
         methods add_{location,branchpoint,transition}.
         """
         super().__init__(incoming_graph_data, **attr)
