@@ -1,0 +1,18 @@
+	<template>
+		<name>Test2</name>
+		<declaration>clock x;</declaration>
+		<location id="id3" x="238" y="0">
+			<name x="228" y="-34">l1</name>
+			<label kind="invariant" x="228" y="17">x &lt;= 50</label>
+		</location>
+		<location id="id4" x="0" y="0">
+			<name x="-10" y="-34">l0</name>
+			<label kind="invariant" x="-10" y="17">x &gt;= 0</label>
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="59" y="-25">x &lt;= 10 &amp;&amp; x &gt;= 5</label>
+		</transition>
+	</template>
