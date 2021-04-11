@@ -8,7 +8,7 @@ int i;</declaration>
 		<declaration>// Place local declarations here.
 clock x;</declaration>
 		<location id="id0" x="0" y="0">
-			<name x="-10" y="-34">good location</name>
+			<name x="-85" y="-42">good_location</name>
 			<label kind="invariant" x="-10" y="17">x &lt;= 0</label>
 			<committed/>
 		</location>
@@ -25,7 +25,7 @@ clock x;</declaration>
 	</template>
 	<template>
 		<name>Template0</name>
-		<parameter>foo bar</parameter>
+		<parameter>int bar</parameter>
 		<location id="id2" x="0" y="0">
 			<name x="-10" y="-34">hello</name>
 		</location>
