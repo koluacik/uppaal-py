@@ -83,6 +83,24 @@ class TestTemplate:
         assert t.find("parameter").text == "const id_t id"
         assert t.find("declaration").text == "clock x;"
 
+    @staticmethod
+    def test_template_parse_clocks():
+        """Test initializing clock list from the declaration field."""
+        t = Template.from_element(
+            ET.parse(testcase_dir + "template_xml_files/test1.xml").getroot()
+        )
+        assert t.clocks == ["x", "y"]
+
+        t = Template.from_element(
+            ET.parse(testcase_dir + "template_xml_files/test2.xml").getroot()
+        )
+        assert t.clocks == ["x"]
+
+        t = Template.from_element(
+            ET.parse(testcase_dir + "template_xml_files/test6.xml").getroot()
+        )
+        assert t.clocks == ["x", "y", "c3", "clock4", "clock5"]
+
 
 class TestTAGraph:
     """Unit tests for TAGraphs."""
@@ -143,7 +161,7 @@ class TestTAGraph:
         graph.add_transition(trans)
 
         assert graph._transitions[0] == trans
-        assert graph[('', 'id0')][('', 'id1')][0]['obj'] == trans
+        assert graph[("", "id0")][("", "id1")][0]["obj"] == trans
 
     @staticmethod
     def test_tagraph_init_with_template():

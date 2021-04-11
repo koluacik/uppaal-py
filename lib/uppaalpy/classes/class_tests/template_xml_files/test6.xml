@@ -1,0 +1,61 @@
+	<template>
+		<name x="40" y="16">Train</name>
+		<parameter>const id_t id</parameter>
+                <declaration>clock x, y;
+            clock c3, clock4,clock5 ;</declaration>
+		<location id="id0" x="96" y="96">
+			<name x="48" y="80">Safe</name>
+		</location>
+		<location id="id1" x="176" y="320">
+			<name x="192" y="328">Stop</name>
+		</location>
+		<location id="id2" x="256" y="96">
+			<name x="272" y="80">Cross</name>
+			<label kind="invariant" x="272" y="96">x&lt;=5</label>
+		</location>
+		<location id="id3" x="96" y="232">
+			<name x="32" y="216">Appr</name>
+			<label kind="invariant" x="32" y="232">x&lt;=20</label>
+		</location>
+		<location id="id4" x="256" y="232">
+			<name x="272" y="216">Start</name>
+			<label kind="invariant" x="272" y="232">x&lt;= 15</label>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="184" y="160">x&gt;=10</label>
+			<label kind="assignment" x="184" y="176">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="88" y="280">x&lt;=10</label>
+			<label kind="synchronisation" x="88" y="296">stop[id]?</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="184" y="56">x&gt;=3</label>
+			<label kind="synchronisation" x="184" y="72">leave[id]!</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="32" y="128">appr[id]!</label>
+			<label kind="assignment" x="32" y="144">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="guard" x="264" y="160">x&gt;=7</label>
+			<label kind="assignment" x="264" y="176">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="224" y="280">go[id]?</label>
+			<label kind="assignment" x="224" y="296">x=0</label>
+		</transition>
+	</template>

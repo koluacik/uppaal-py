@@ -132,7 +132,12 @@ class SimpleField:
     @classmethod
     def from_element(cls, et):
         """Convert an Element to a SimpleField object."""
-        return cls(et.text) if et is not None else None
+        if et is None:
+            return None
+        elif et.text is None:
+            return cls("")
+        else:
+            return cls(et.text)
 
     def to_element(self):
         """Convert this object to an Element. Called from NTA.to_element.
