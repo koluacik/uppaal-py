@@ -1,6 +1,6 @@
 """Tests for NTA class."""
 
-import benchmarks.patch_lxml_comparison_random as changers
+from uppaalpy.classes.class_tests.random_changers import random_scenario
 from uppaalpy.classes.nta import NTA
 from uppaalpy.classes.simplethings import Declaration, SystemDeclaration
 
@@ -38,7 +38,8 @@ def _dec_check(l1, l2):
         end2 = l2.index("<", start2)  # '<' in </label>
         c2 = sorted(l2[start2:end2].split("&amp;&amp;"))
 
-        if len(c1) != len(c2): return False
+        if len(c1) != len(c2):
+            return False
 
         for i in range(len(c1)):
             if c1[i] != c2[i]:
@@ -188,7 +189,7 @@ class TestNTA:
         out2 = "/tmp/out2.xml"
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 0, 0, 10)
+            nta = random_scenario(path, 0, 0, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -199,7 +200,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 0, 4, 0)
+            nta = random_scenario(path, 0, 4, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -210,7 +211,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 4, 0, 0)
+            nta = random_scenario(path, 4, 0, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -221,7 +222,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 2, 2)
+            nta = random_scenario(path, 2, 2, 2)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -232,7 +233,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 10, 2, 10)
+            nta = random_scenario(path, 10, 2, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -250,7 +251,7 @@ class TestNTA:
         out2 = "/tmp/out4.xml"
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 0, 0, 10)
+            nta = random_scenario(path, 0, 0, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -261,7 +262,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 0, 4, 0)
+            nta = random_scenario(path, 0, 2, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -272,7 +273,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 0, 0)
+            nta = random_scenario(path, 2, 0, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -283,7 +284,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 2, 2)
+            nta = random_scenario(path, 2, 2, 2)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -294,7 +295,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 10, 10, 10)
+            nta = random_scenario(path, 10, 10, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -312,7 +313,7 @@ class TestNTA:
         out2 = "/tmp/out6.xml"
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 0, 0, 10)
+            nta = random_scenario(path, 0, 0, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -323,7 +324,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 1, 0)
+            nta = random_scenario(path, 2, 1, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -334,7 +335,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 0, 0)
+            nta = random_scenario(path, 2, 0, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -345,7 +346,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 4, 1, 2)
+            nta = random_scenario(path, 2, 0, 2)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -356,7 +357,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(3):
-            nta = changers.random_scenario(path, 20, 0, 10)
+            nta = random_scenario(path, 20, 0, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -374,7 +375,7 @@ class TestNTA:
         out2 = "/tmp/out8.xml"
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 0, 0, 10)
+            nta = random_scenario(path, 0, 0, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -385,7 +386,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 3, 1, 0)
+            nta = random_scenario(path, 3, 1, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -396,7 +397,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 0, 0)
+            nta = random_scenario(path, 2, 0, 0)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -407,7 +408,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 2, 2, 2)
+            nta = random_scenario(path, 2, 2, 2)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 
@@ -418,7 +419,7 @@ class TestNTA:
                 assert _dec_check(inlines[i], outlines[i])
 
         for _ in range(10):
-            nta = changers.random_scenario(path, 10, 0, 10)
+            nta = random_scenario(path, 10, 0, 10)
             nta.flush_constraint_changes(out1)
             nta.to_file(out2)
 

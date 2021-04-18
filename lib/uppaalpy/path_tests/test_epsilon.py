@@ -1,5 +1,6 @@
+"""Check the behavior of the path analysis on open/closed NTA."""
 import pytest
-from tests.helpers import *
+from uppaalpy.path_tests.helpers import *
 
 @pytest.mark.parametrize("fp", epsilon_tests())
 def test_epsilon(fp):

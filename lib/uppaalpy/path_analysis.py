@@ -54,6 +54,16 @@ def convert_to_path(template, lst):
 def path_realizable(path, validate_path=False, add_epsilon=False):
     """Given a path, construct an LP and return results.
 
+    See: path_realizable_with_initial_valuation from this module.
+    """
+    return path_realizable_with_initial_valuation(path, validate_path, add_epsilon)
+
+
+def path_realizable_with_initial_valuation(
+    path, validate_path=False, add_epsilon=False, icv_constants=None, clocks=None
+):
+    """Given a path, construct an LP and return results.
+
     Args:
         path: List of alternating location and transitions.
         validate_path: Check whether each transition is actually between
@@ -61,31 +71,97 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         add_epsilon: Add epsilon to constraints with operators '<' and '>'.
             This is useful for invalidating solutions that would be otherwise
             correct with operators '<=' or '>='.
+        icv_constants: The initial valuation of the clocks at the first location
+            of the path.  If left as None, all initial clock valuations will be
+            assumed to be 0.  Otherwise clock valuations with provided clock
+            names as keys are initially the value corresponding to the clock
+            name. Clock valuations omitted will be constrained with "c >= 0".
+        clocks: List of clock name strings. If None, find_used_clocks function will be
+            used to determine the used clocks by iterating the path.
     Returns:
         A tuple of a bool and a witness list of delays for each location.
     """
+    # Strategy:
+    #
+    # If icv is None:
+    #       variable count <- length(path)
+    #       construct lp  -- each var corresponds to time spent on a location
+    #
+    # Otherwise:
+    #       variable count <- clock count + length(path)
+    #       construct lp with:
+    #           Consider a clock val variable for each clock.
+    #           Prepend each clock_to_delay[clock] with a corresponding icv var.
+    #           Forall clocks: if initial clock value is specified:
+    #               Constrain clock.
+
+    # Check whether the path exists (not necessarily realizable).
     if validate_path and not path_exists(path):
         return False, []
-    length_of_path = len(path) // 2
 
-    clocks = find_used_clocks(path)
-
+    # We will construct the LP using these.
+    # Each row in A correspond to a sequence of coefficients
+    # ai1, ai2, ai3... ain such that ai1 * var1 + ai2 * var2 ... <= bi.
+    # Matrix A and vector B will be populated by the compute_constraint
+    # procedure.
     A = []
     B = []
 
+    # Find clock names.
+    if clocks == None:
+        clocks = find_used_clocks(path)
+
     clock_to_delay = dict()
 
-    for x in clocks:
-        clock_to_delay[x] = [0]
+    delay_var_count = len(path) // 2
+    var_count = delay_var_count  # var_count can be updated depending on icv.
+    delay_var_offset = 0
 
+    # Are icv (initial clock valuations) >= 0, == 0, or == some other value?
+
+    if icv_constants is not None:
+        # Initial clock valuations are not 0. Add a icv var to the LP for each
+        # clock. For the function parameter icv, if icv_constants[clock_name] exists,
+        # constrain that icv with icv <= icv_constants[clock_name]
+        # and -icv <= -icv_constants[clock_name] (icv == icv_constants[clock_name].
+
+        icv_var_count = len(clocks)
+        var_count = delay_var_count + icv_var_count
+        delay_var_offset = icv_var_count
+
+        for i, c in enumerate(clocks):
+            a = [[0] * var_count]
+            b = [0]
+            a[0][i] = -1  # Since (-var in -inf, 0) <=> (var in 0, inf)
+            A.append(a[0])
+            B.append(b[0])
+            try:
+                clock_to_delay[c] = [i, delay_var_offset]
+                icv_c = icv_constants[c]
+                b[0] = icv_c  # c in -var <= -c
+                b.append(-icv_c)  # c in var <= c
+                a.append([-var for var in a[0]])
+                A.append(a[1])
+                B.append(b[1])
+            except:
+                pass
+
+        for i, c in enumerate(clocks):
+            clock_to_delay[c] = [i, delay_var_offset]
+
+    else:
+        # Initial clock valuations are all 0. No need to consider icv vars.
+        # delay_var_offset is 0.
+        for c in clocks:
+            clock_to_delay[c] = [0]
+
+    # Generate LP coefficients for each constraint.
     for i in range(0, len(path) - 1, 2):
         # Source location
         l = path[i]
         if l.invariant is not None:
             for c in l.invariant.constraints:
-                a, b = compute_constraint(
-                    clock_to_delay, c, length_of_path, add_epsilon
-                )
+                a, b = compute_constraint(clock_to_delay, c, var_count, add_epsilon)
                 for k in range(len(a)):
                     A.append(a[k])
                     B.append(b[k])
@@ -94,52 +170,48 @@ def path_realizable(path, validate_path=False, add_epsilon=False):
         t = path[i + 1]
         if t.guard is not None:
             for c in t.guard.constraints:
-                a, b = compute_constraint(
-                    clock_to_delay, c, length_of_path, add_epsilon
-                )
+                a, b = compute_constraint(clock_to_delay, c, var_count, add_epsilon)
                 for k in range(len(a)):
                     A.append(a[k])
                     B.append(b[k])
 
         # Resets
         resets_in_transition = get_resets(t, clock_to_delay.keys())
-        for x in resets_in_transition:
-            clock_to_delay[x] = []
+        for c in resets_in_transition:
+            clock_to_delay[c] = []
 
         # Target location
         l = path[i + 2]
         if l.invariant is not None:
             for c in l.invariant.constraints:
-                a, b = compute_constraint(
-                    clock_to_delay, c, length_of_path, add_epsilon
-                )
+                a, b = compute_constraint(clock_to_delay, c, var_count, add_epsilon)
                 for k in range(len(a)):
                     A.append(a[k])
                     B.append(b[k])
 
-        # Add delays
-        for x in clocks:
-            clock_to_delay[x].append(i // 2 + 1)
+        # Add delays, consider delay_var_offset.
+        for c in clocks:
+            clock_to_delay[c].append(i // 2 + 1 + delay_var_offset)
 
     solver = pywraplp.Solver("", pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
 
-    x = {}
+    c = {}
 
-    for j in range(length_of_path):
-        x[j] = solver.NumVar(0, solver.infinity(), "x[%s]" % j)
+    for j in range(var_count):
+        c[j] = solver.NumVar(0, solver.infinity(), "x[%s]" % j)
 
     for i in range(len(A)):
         constraint = solver.RowConstraint(-solver.infinity(), B[i], "")
-        for j in range(length_of_path):
-            constraint.SetCoefficient(x[j], A[i][j])
+        for j in range(var_count):
+            constraint.SetCoefficient(c[j], A[i][j])
 
     status = solver.Solve()
 
     delays = []
 
     if status == solver.OPTIMAL:
-        for i in range(length_of_path):
-            delays.append(x[i].solution_value())
+        for i in range(var_count):
+            delays.append(c[i].solution_value())
         return True, delays
 
     if status == solver.INFEASIBLE:

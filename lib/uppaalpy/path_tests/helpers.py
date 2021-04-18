@@ -1,20 +1,12 @@
 import uppaalpy
 import os
-from uppaalpy import path as p
+from uppaalpy import path_analysis as p
 
-testcase_dir = "tests/testcases/"
+testcase_dir = "lib/uppaalpy/path_tests/testcases/"
 
 def list_nta_in_dir(directory):
     return [directory.strip('/') + '/' + x \
             for x in os.listdir(directory) if x.endswith('.xml')]
-
-def broken_xml():
-    file_path = testcase_dir + "broken_xml"
-    return list_nta_in_dir(file_path)
-
-def broken_nta():
-    file_path = testcase_dir + "broken_nta"
-    return list_nta_in_dir(file_path)
 
 def good_nta():
     file_path = testcase_dir + "good_nta"
@@ -49,9 +41,6 @@ def read_file(fp):
 
 def write_to_file(nta):
     return nta.to_file('/tmp/out.xml')
-
-def write_to_file_pretty(nta):
-    return nta.to_file('/tmp/out.xml', pretty=True)
 
 def get_path_from_query_comment(nta):
     path_string = nta.queries[0].comment

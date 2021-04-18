@@ -1,5 +1,5 @@
 import pytest
-from tests.helpers import *
+from uppaalpy.path_tests.helpers import *
 
 @pytest.mark.parametrize("fp", reachable_nta())
 def test_reachable_nta(fp):

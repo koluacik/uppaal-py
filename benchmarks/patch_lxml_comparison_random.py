@@ -3,123 +3,11 @@
 import random
 import timeit
 
-import uppaalpy
-from uppaalpy.classes.simplethings import SimpleConstraint
+from uppaalpy.classes.class_tests.random_changers import random_scenario
 
 REPEAT = 5000
 
 
-def select_random_transition(nta, nonempty=False):
-    """Select a random transition.
-
-    If nonempty is True, keep selecting until one with constraints is found.
-    """
-    while True:
-        t = random.choice(nta.templates)
-        trans = random.choice(t.graph._transitions)
-        if not (nonempty and trans.guard is None):
-            break
-
-    return trans
-
-
-def select_random_location(nta, nonempty=False):
-    """Select a random location.
-
-    If nonempty is True, keep selecting until one with constraints is found.
-    """
-    while True:
-        t = random.choice(nta.templates)
-        locs = t.graph.get_nodes()
-        loc = random.choice(locs)
-        if not (nonempty and loc.invariant is None):
-            break
-
-    return loc
-
-
-def make_random_insert(nta):
-    """Insert a random constraint to a random transition or location."""
-    change_transition = random.choice([True, False])
-
-    if change_transition:
-        trans = select_random_transition(nta)
-        nta.change_transition_constraint(
-            trans,
-            operation="insert",
-            simple_constraint=SimpleConstraint(
-                ["x"], random.choice(["<", ">"]), random.randint(1, 100)
-            ),
-        )
-
-    else:
-        location = select_random_location(nta)
-        nta.change_location_constraint(
-            location,
-            operation="insert",
-            simple_constraint=SimpleConstraint(
-                ["x"], random.choice(["<", ">"]), random.randint(1, 100)
-            ),
-        )
-
-
-def make_random_remove(nta):
-    """Remove a random constraint from a random transition or location."""
-    change_transition = random.choice([True, False])
-
-    if change_transition:
-        trans = select_random_transition(nta, nonempty=True)
-        nta.change_transition_constraint(
-            trans,
-            operation="remove",
-            simple_constraint=random.choice(trans.guard.constraints),
-        )
-
-    else:
-        location = select_random_location(nta, nonempty=True)
-        nta.change_location_constraint(
-            location,
-            operation="remove",
-            simple_constraint=random.choice(location.invariant.constraints),
-        )
-
-
-def make_random_update(nta):
-    """Update a random constraint from a random transition or location."""
-    change_transition = random.choice([True, False])
-
-    if change_transition:
-        trans = select_random_transition(nta, nonempty=True)
-        nta.change_transition_constraint(
-            trans,
-            operation="update",
-            simple_constraint=random.choice(trans.guard.constraints),
-            threshold_delta=random.randint(1, 10),
-        )
-
-    else:
-        location = select_random_location(nta, nonempty=True)
-        nta.change_location_constraint(
-            location,
-            operation="update",
-            simple_constraint=random.choice(location.invariant.constraints),
-            threshold_delta=random.randint(1, 10),
-        )
-
-
-def random_scenario(nta_file, insert_count, remove_count, update_count):
-    """Apply random changes for each given change type."""
-    nta = uppaalpy.NTA.from_xml(nta_file)
-    for _ in range(insert_count):
-        make_random_insert(nta)
-
-    for _ in range(remove_count):
-        make_random_remove(nta)
-
-    for _ in range(update_count):
-        make_random_update(nta)
-
-    return nta
 
 
 def random_scenario_without_specific_change_counts(nta_file, change_count):
@@ -154,7 +42,7 @@ def apply_random_scenario(nta_file, scenario, random_counts):
     print("BENCHMARKING: nta.to_file (lxml): ", end="", flush=True)
     for _ in range(REPEAT):
         start = timeit.default_timer()
-        nta.to_file("/tmp/out.xml", pretty=True)
+        nta.to_file("/tmp/out.xml")
         end = timeit.default_timer()
         acc_time += end - start
     print(acc_time)

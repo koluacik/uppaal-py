@@ -126,7 +126,7 @@ def apply_scenario(scenario):
     nta = scenario()
     for _ in range(REPEAT):
         start = timeit.default_timer()
-        nta.to_file("/tmp/out.xml", pretty=True)
+        nta.to_file("/tmp/out.xml")
         end = timeit.default_timer()
         acc_time += end - start
     print(acc_time)

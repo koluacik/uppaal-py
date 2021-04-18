@@ -1,5 +1,5 @@
 import pytest
-from tests.helpers import *
+from uppaalpy.path_tests.helpers import *
 
 @pytest.mark.parametrize("fp", path_exists())
 def test_path_exists(fp):
