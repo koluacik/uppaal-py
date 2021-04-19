@@ -1,3 +1,4 @@
+"""Tests for path existance check logic."""
 import pytest
 from uppaalpy.path_tests.helpers import *
 

@@ -29,7 +29,7 @@ def convert_to_path(template, lst):
     """Given a template and a list return a list of node and edges.
 
     Args:
-        template: Template name.
+        template: Template object.
         lst: Alternating list of location name strings and edge id's.
     Returns:
         An alternating list of location and transition objects.
@@ -71,10 +71,10 @@ def path_realizable_with_initial_valuation(
         add_epsilon: Add epsilon to constraints with operators '<' and '>'.
             This is useful for invalidating solutions that would be otherwise
             correct with operators '<=' or '>='.
-        icv_constants: The initial valuation of the clocks at the first location
-            of the path.  If left as None, all initial clock valuations will be
-            assumed to be 0.  Otherwise clock valuations with provided clock
-            names as keys are initially the value corresponding to the clock
+        icv_constants: Dict for the initial valuation of the clocks at the first
+            location of the path.  If left as None, all initial clock valuations
+            will be assumed to be 0.  Otherwise clock valuations with provided
+            clock names as keys are initially the value corresponding to the clock
             name. Clock valuations omitted will be constrained with "c >= 0".
         clocks: List of clock name strings. If None, find_used_clocks function will be
             used to determine the used clocks by iterating the path.
@@ -273,6 +273,98 @@ def compute_constraint(
         B_row.append(-B_row[0])
 
     return A_row, B_row
+
+
+def find_all_semi_realizable_paths(template, iterations):
+    """Construct a DP table for all semi-realizable paths in the TA.
+
+    A path is semi-realizable if and only if there exists initial clock
+    valuations >= 0 such that that the path is realizable. A DP table is
+    returned such that DP[i][j] is the list of all semi-realizable paths
+    from the location i to location j. We assume there always exists a path
+    from location x to location x of lenth 0 (degenerate case).
+
+    Args:
+        template: A Template object.
+        iterations: How many times to go over the DP table to find new paths.
+
+    Returns:
+        A dict of dict whose values are alternating lists of Location and Transition objects.
+    """
+    g = template.graph
+    nodes = g.nodes
+
+    DP = {}
+
+    # Create DP table.
+    for i, i_obj in nodes.data("obj"):
+        DP[i] = {}
+        for j in nodes:
+            DP[i][j] = []
+        # Paths of length 0.
+        DP[i][i].append([i_obj])
+
+    # Add paths of length 1.
+    for i, i_obj in nodes.data("obj"):
+        for j, edge_dict in g[i].items():
+            j_obj = g.nodes.data("obj")[j]
+            for e_attr in edge_dict.values():
+                e_obj = e_attr["obj"]
+                path = [i_obj, e_obj, j_obj]
+                if path_realizable_with_initial_valuation(path, icv_constants={}):
+                    DP[i][j].append(path)
+
+    for _ in range(iterations):
+        for i in nodes:
+            for j in nodes:
+                for k in nodes:
+                    for p1 in DP[i][j]:
+                        for p2 in DP[j][k]:
+                            p3 = p1[:-1] + p2[:]
+                            if p3 in DP[i][k]:
+                                continue
+                            elif path_realizable_with_initial_valuation(
+                                p3, icv_constants={}
+                            ):
+                                DP[i][k].append(p3)
+
+    return DP
+
+
+def concatenate_paths(template, p1, p2):
+    """Return a list of possible concatenations of given two paths.
+
+    A distinct path for each transition going from the last location of p1 to
+    the initial location of p2 is created.
+
+    Args:
+        template: A NTA object.
+        p1: A list denoting a path. l1-t1-l2-t2..ln
+        p2: A list denoting a path. l(n+1)-tn..lm
+
+    Returns:
+        A list of paths l1..ln-tx-l(n+1)..lm for each tx.
+    """
+    res = []
+    last = p1[-1].id
+    first = p2[0].id
+    g = template.graph
+    t_name = g.template_name
+
+    # If no transition between the two exists, key error exception is thrown.
+    try:
+        # Iterate over all transitions from last to first.
+        for obj in g[(t_name, last)][(t_name, first)].values():
+            t = obj["obj"]
+            p = []
+            p.extend(p1)
+            p.append(t)
+            p.extend(p2)
+            res.append(p)
+    except KeyError:
+        pass
+
+    return res
 
 
 if __name__ == "__main__":
