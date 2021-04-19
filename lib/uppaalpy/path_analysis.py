@@ -291,10 +291,18 @@ def find_all_semi_realizable_paths(template, iterations):
     Returns:
         A dict of dict whose values are alternating lists of Location and Transition objects.
     """
+    def initialize_dp_extension(dp):
+        dp.clear()
+        for i, i_obj in nodes.data("obj"):
+            dp[i] = {}
+            for j in nodes:
+                dp[i][j] = []
+
     g = template.graph
     nodes = g.nodes
 
     DP = {}
+    DPE = {}
 
     # Create DP table.
     for i, i_obj in nodes.data("obj"):
@@ -315,18 +323,23 @@ def find_all_semi_realizable_paths(template, iterations):
                     DP[i][j].append(path)
 
     for _ in range(iterations):
+        # Initialize DP extension table.
+        initialize_dp_extension(DPE)
         for i in nodes:
             for j in nodes:
                 for k in nodes:
                     for p1 in DP[i][j]:
                         for p2 in DP[j][k]:
-                            p3 = p1[:-1] + p2[:]
-                            if p3 in DP[i][k]:
+                            p3 = p1[:-1] + p2
+                            if p3 in DP[i][j] or p3 in DPE[i][j]:
                                 continue
                             elif path_realizable_with_initial_valuation(
                                 p3, icv_constants={}
                             ):
-                                DP[i][k].append(p3)
+                                DPE[i][j].append(p3)
+        for i in nodes:
+            for j in nodes:
+                DP[i][j].extend(DPE[i][j])
 
     return DP
 
