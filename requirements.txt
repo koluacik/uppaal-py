@@ -1,4 +1,0 @@
-networkx >= 2.5
-ortools
-pytest
-lxml
