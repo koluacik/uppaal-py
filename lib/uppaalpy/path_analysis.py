@@ -1,5 +1,6 @@
 """Functions for path analysis."""
 from ortools.linear_solver import pywraplp
+from itertools import product
 
 EPS = 2 ** (-10)
 
@@ -275,42 +276,42 @@ def compute_constraint(
     return A_row, B_row
 
 
-def find_all_semi_realizable_paths(template, iterations):
+def find_all_semi_realizable_paths(template, max_length):
     """Construct a DP table for all semi-realizable paths in the TA.
 
     A path is semi-realizable if and only if there exists initial clock
     valuations >= 0 such that that the path is realizable. A DP table is
-    returned such that DP[i][j] is the list of all semi-realizable paths
-    from the location i to location j. We assume there always exists a path
-    from location x to location x of lenth 0 (degenerate case).
+    returned such that DP[i][j] is a collection (explained below) of all
+    semi-realizable paths from the location i to location j.
+    We assume there always exists a path from location x to location x of length 0
+    (degenerate case).
 
     Args:
         template: A Template object.
-        iterations: How many times to go over the DP table to find new paths.
+        max_length: Check paths of length <= max_length. Assumed to be >= 1.
 
     Returns:
-        A dict of dict whose values are alternating lists of Location and Transition objects.
+        A dict of dict of list of list of lists. DP['i']['j'][k] gives the
+        list of semi-realizable paths from location named 'i' to location named
+        'j' of length k.
     """
-    def initialize_dp_extension(dp):
-        dp.clear()
-        for i, i_obj in nodes.data("obj"):
-            dp[i] = {}
-            for j in nodes:
-                dp[i][j] = []
-
     g = template.graph
     nodes = g.nodes
 
     DP = {}
-    DPE = {}
+
+    # For debug.
+    # c1 = 0
+    # c2 = 0
+    # c3 = 0
 
     # Create DP table.
     for i, i_obj in nodes.data("obj"):
         DP[i] = {}
         for j in nodes:
-            DP[i][j] = []
+            DP[i][j] = [[] for _ in range(max_length + 1)]
         # Paths of length 0.
-        DP[i][i].append([i_obj])
+        DP[i][i][0].append([i_obj])
 
     # Add paths of length 1.
     for i, i_obj in nodes.data("obj"):
@@ -320,27 +321,27 @@ def find_all_semi_realizable_paths(template, iterations):
                 e_obj = e_attr["obj"]
                 path = [i_obj, e_obj, j_obj]
                 if path_realizable_with_initial_valuation(path, icv_constants={}):
-                    DP[i][j].append(path)
+                    DP[i][j][1].append(path)
 
-    for _ in range(iterations):
-        # Initialize DP extension table.
-        initialize_dp_extension(DPE)
-        for i in nodes:
-            for j in nodes:
-                for k in nodes:
-                    for p1 in DP[i][j]:
-                        for p2 in DP[j][k]:
-                            p3 = p1[:-1] + p2
-                            if p3 in DP[i][j] or p3 in DPE[i][j]:
-                                continue
-                            elif path_realizable_with_initial_valuation(
-                                p3, icv_constants={}
-                            ):
-                                DPE[i][j].append(p3)
-        for i in nodes:
-            for j in nodes:
-                DP[i][j].extend(DPE[i][j])
-
+    for l in range(2, max_length + 1):
+        # Find paths of length l by examining subpaths of length (p) and (l - p).
+        # p1 = i...j, p2 = j...k => p3 = i...j...k
+        for p in range(1, l):
+            s = l - p
+            for i, j, k in product(nodes, repeat=3):
+                for p1 in DP[i][j][p]:
+                    for p2 in DP[j][k][s]:
+                        p3 = p1[:-1] + p2
+                        # c1 += l
+                        # c2 += 1
+                        if p3 in DP[i][k][l]:
+                            continue
+                        elif path_realizable_with_initial_valuation(
+                            p3, icv_constants={}
+                        ):
+                            DP[i][k][l].append(p3)
+                        # c3 += 1
+        # print(l, c1, c2, c3)
     return DP
 
 
