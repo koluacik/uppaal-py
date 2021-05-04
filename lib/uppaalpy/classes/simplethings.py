@@ -150,7 +150,7 @@ class SimpleField:
 
 
 class SystemDeclaration(SimpleField):
-    """A derived class for simple strings in UPPAAL.
+    """A derived class for simple strings in UPPAAL. Contains the system declaration.
 
     See base class SimpleField.
     """
@@ -158,13 +158,72 @@ class SystemDeclaration(SimpleField):
     tag = "system"
 
 
-class Declaration(SimpleField):
+class LocalDeclaration(SimpleField):
     """A derived class for simple strings in UPPAAL.
+
+    Contains the declarations of the local variables of templates.
 
     See base class SimpleField.
     """
 
     tag = "declaration"
+
+
+class Declaration(SimpleField):
+    """A derived class for global variable declarations.
+
+    This class extends the base class by constructing two dictionaries for storing
+    the initial state of the mutable variables, and a lookup table of the constant
+    variables based on the declared variables in this field. Currently, only
+    int and const int variables are taken into consideration. Declarations should
+    be of form
+    [const] int (identifier "=" value) (identifier "=" value)* ";"
+
+    See base class LocalDeclaration
+    """
+
+    constants = {}
+    initial_state = {}
+
+    def __init__(self, text):
+        """Given a string, construct a declaration."""
+        super().__init__(text)
+
+        for l in self.text.split("\n"):
+            if l.startswith("const int"):
+                self._parse_constants(l)
+            elif l.startswith("int"):
+                self._parse_variables(l)
+
+    def _parse_constants(self, line):
+        """Given a line starting with "cont int" parse constants."""
+        # const int c = 10, c1 = 100, var; // Some comments...
+        #           ^..............,,,,,^
+        pairs = self._parse_line(10, line)
+        for i, v in pairs:
+            self.initial_state[i] = v
+
+    def _parse_variables(self, line):
+        """Given a line starting with "int" parse variables and initial values."""
+        # int c = 10, c1 = 100, var; // Some comments...
+        #     ^...................^
+        pairs = self._parse_line(4, line)
+        for i, v in pairs:
+            self.initial_state[i] = v
+
+    @staticmethod
+    def _parse_line(offset, line):
+        res = []
+        for init in line[offset : line.index(";")].split(","):
+            # Declarations with no initialisers are initialized to 0 for ints.
+            decl = init.split("=")
+            iden = decl[0]
+            if len(decl) == 2:
+                val = decl[1]
+            else:
+                val = "0"
+            res.append((iden.strip(), int(val.strip())))
+        return res
 
 
 class Parameter(SimpleField):
