@@ -25,9 +25,13 @@ pip install uppaal-py
 
 ## TODO:
 [ ] Methods for calling UPPAAL/verifyta.
+
 [ ] Migrate to [libutap](https://github.com/MASKOR/libutap) for parsing files.
+
 [ ] Parameter synthesis for safety property.
+
 [ ] [lxml type annotations](https://github.com/lxml/lxml-stubs) and type annotations for the remaining functions.
+
 [ ] Auto-generated documentation.
 
 ## Non-features
