@@ -24,15 +24,11 @@ pip install uppaal-py
 - Working with variables of type `int` and a subset of expressions involving `ints` for guards, invariants, and updates during transitions allowed in UPPAAL in addition to clocks during computations.
 
 ## TODO:
-[ ] Methods for calling UPPAAL/verifyta.
-
-[ ] Migrate to [libutap](https://github.com/MASKOR/libutap) for parsing files.
-
-[ ] Parameter synthesis for safety property.
-
-[ ] [lxml type annotations](https://github.com/lxml/lxml-stubs) and type annotations for the remaining functions.
-
-[ ] Auto-generated documentation.
+- [ ] Methods for calling UPPAAL/verifyta.
+- [ ] Migrate to [libutap](https://github.com/MASKOR/libutap) for parsing files.
+- [ ] Parameter synthesis for safety property.
+- [ ] [lxml type annotations](https://github.com/lxml/lxml-stubs) and type annotations for the remaining functions.
+- [ ] Auto-generated documentation.
 
 ## Non-features
 - Analysis involving network of TA — product of two or more TA can be implemented in the future, though.
