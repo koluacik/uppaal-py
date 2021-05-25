@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>// Place global declarations here.</declaration>
+    <declaration>// Place global declarations here.
+clock x, y; </declaration>
 	<template>
 		<name x="5" y="5">Test1</name>
 		<declaration>// Place local declarations here.

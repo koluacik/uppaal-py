@@ -1,7 +1,7 @@
 """Helpers for making random changes on NTA."""
 
 import random
-from uppaalpy import SimpleConstraint, NTA
+from uppaalpy import SCConstraint, NTA
 
 def select_random_transition(nta, nonempty=False):
     """Select a random transition.
@@ -41,7 +41,7 @@ def make_random_insert(nta):
         nta.change_transition_constraint(
             trans,
             operation="insert",
-            simple_constraint=SimpleConstraint(
+            simple_constraint=SCConstraint(
                 ["x"], random.choice(["<", ">"]), random.randint(1, 100)
             ),
         )
@@ -51,7 +51,7 @@ def make_random_insert(nta):
         nta.change_location_constraint(
             location,
             operation="insert",
-            simple_constraint=SimpleConstraint(
+            simple_constraint=SCConstraint(
                 ["x"], random.choice(["<", ">"]), random.randint(1, 100)
             ),
         )

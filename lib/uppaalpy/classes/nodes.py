@@ -1,8 +1,13 @@
 """Module for definitions of abstract class Node, and subclasses BranchPoint and Location."""
 
+from typing import Any, Dict, List, Optional, Tuple, Type
+
 import lxml.etree as ET
 
-from .simplethings import Constraint, Label, Name
+from uppaalpy.classes import templates as t
+from uppaalpy.classes.context import Context
+from uppaalpy.classes.expr import ConstraintExpression
+from uppaalpy.classes.simplethings import ConstraintLabel, Label, Name
 
 
 class Node:
@@ -15,19 +20,19 @@ class Node:
         pos: Pair of ints for storing the position of the node.
     """
 
-    tag = None
-    id = "null"
-    pos = (0, 0)
+    tag = None  # type: Optional[str]
+    id = "null"  # type: str
+    pos = (0, 0)  # type: Tuple[int, int]
 
     @staticmethod
-    def generate_dict(et):
+    def generate_dict(et, ctx: Context) -> Dict[str, Any]:
         """Construct a dict from an Element object, and return it.
 
         Notice that only 'id' and 'pos' are relevant for BranchPoints. Other
-        attributes are not present in the XML file and gracefully ignored for
-        BranchPoint objects.
+        attributes are not present in the XML file and ignored for BranchPoint
+        objects.
         """
-        kw = {}
+        kw = {}  # type: Dict[str, Any]
         kw["id"] = et.get("id")
         kw["pos"] = int(et.get("x")), int(et.get("y"))
         kw["name"] = Name.from_element(et.find("name"))
@@ -37,7 +42,7 @@ class Node:
             label_obj = Label.from_element(label)
 
             if l_kind == "invariant":
-                label_obj = Constraint.from_label(label_obj)
+                label_obj = ConstraintLabel.from_label(label_obj, ctx)
 
             kw[l_kind] = label_obj
 
@@ -69,9 +74,9 @@ class BranchPoint(Node):
         self.pos = kwargs["pos"]
 
     @classmethod
-    def from_element(cls, et):
+    def from_element(cls: Type["BranchPoint"], et, ctx: Context) -> "BranchPoint":
         """Generate a dictionary for initialization from et and construct a BP."""
-        return cls(**super().generate_dict(et))
+        return cls(**super().generate_dict(et, ctx))
 
 
 class Location(Node):
@@ -85,7 +90,7 @@ class Location(Node):
         id: id string.
         pos: Int pair.
         name: Name object.
-        invariant: Constraint object for location invariants.
+        invariant: ConstraintLabel object for location invariants.
         exponentialrate: Label object. See UPPAAL documentation.
         testcodeEnter: Label object. See UPPAAL documentation.
         testcodeExit: Label object. See UPPAAL documentation.
@@ -97,27 +102,27 @@ class Location(Node):
 
     tag = "location"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Construct a Node from an Element object, and return it.
 
         This method extends Node.__init__.
         """
         self.id = kwargs["id"]
         self.pos = kwargs["pos"]
-        self.name = kwargs.get("name")
-        self.invariant = kwargs.get("invariant")
-        self.exponentialrate = kwargs.get("exponentialrate")
-        self.testcodeEnter = kwargs.get("testcodeEnter")
-        self.testcodeExit = kwargs.get("testcodeExit")
-        self.comments = kwargs.get("comments")
-        self.committed = kwargs.get("committed") or False
-        self.urgent = kwargs.get("urgent") or False
-        self.template = None
+        self.name = kwargs.get("name")  # type: Optional[Name]
+        self.invariant = kwargs.get("invariant")  # type: Optional[ConstraintLabel]
+        self.exponentialrate = kwargs.get("exponentialrate")  # type: Optional[Label]
+        self.testcodeEnter = kwargs.get("testcodeEnter")  # type: Optional[Label]
+        self.testcodeExit = kwargs.get("testcodeExit")  # type: Optional[Label]
+        self.comments = kwargs.get("comments")  # type: Optional[Label]
+        self.committed = kwargs.get("committed") or False  # type: bool
+        self.urgent = kwargs.get("urgent") or False  # type: bool
+        self.template = None  # type: Optional[t.Template]
 
     @classmethod
-    def from_element(cls, et):
+    def from_element(cls: Type["Location"], et, ctx: Context) -> "Location":
         """Generate a dictionary for initialization from et and construct a Loc."""
-        return cls(**super().generate_dict(et))
+        return cls(**super().generate_dict(et, ctx))
 
     def to_element(self):
         """Convert this object to an Element.
@@ -143,9 +148,21 @@ class Location(Node):
             element.append(ET.Element("urgent"))
         return element
 
-    def get_constraints(self):
-        """Return a list of simple constraints on this location."""
+    def get_constraints(self) -> List[ConstraintExpression]:
+        """Return a list of constraints on this location."""
         if self.invariant is not None:
             return self.invariant.constraints
         else:
             return []
+
+    def get_constraint_label(self) -> Optional[ConstraintLabel]:
+        """Return the invariant label."""
+        return self.invariant
+
+    def create_constraint_label(self, exp: ConstraintExpression, ctx: Context):
+        """Create invariant label."""
+        self.invariant = ConstraintLabel("invariant", "", self.pos, ctx, [exp])
+
+    def remove_constraint_label(self) -> None:
+        """Remove invariant."""
+        self.invariant = None

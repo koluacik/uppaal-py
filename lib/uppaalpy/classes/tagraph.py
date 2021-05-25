@@ -1,8 +1,14 @@
 """Subclass of networkx multidigraph."""
+
 from itertools import count
+from typing import Dict, List
 
 import lxml.etree as ET
 import networkx as nx
+
+from uppaalpy.classes import nodes as n
+from uppaalpy.classes import templates as te
+from uppaalpy.classes import transitions as tr
 
 
 class TAGraph(nx.MultiDiGraph):
@@ -29,12 +35,12 @@ class TAGraph(nx.MultiDiGraph):
         methods add_{location,branchpoint,transition}.
         """
         super().__init__(incoming_graph_data, **attr)
-        self.initial_location = ""
-        self._named_locations = {}
-        self._transitions = []
-        self.template_name = ""
+        self.initial_location = ""  # type: str
+        self._named_locations = {}  # type: Dict[str, n.Location]
+        self._transitions = []  # type: List[tr.Transition]
+        self.template_name = ""  # type: str
         self._transition_counter = count()
-        self.template = template
+        self.template = template  # type: te.Template
 
     def add_location(self, loc):
         """Insert a Location object.

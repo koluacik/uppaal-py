@@ -3,8 +3,8 @@
 A complete NTA object is required to test these classes.
 """
 
-from uppaalpy import NTA
 from uppaalpy.classes.constraint_patcher import ConstraintPatch, ConstraintUpdate
+from uppaalpy.classes.nta import NTA
 
 from .helpers import testcase_dir
 
@@ -23,12 +23,12 @@ class TestConstraintPatch:
         transition = template.graph._transitions[0]  # First transition
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 15)
+        update = ConstraintUpdate(constraints[0], 15)  # type: ignore
 
-        cp = ConstraintPatch(template, update, transition_ref=transition)
+        cp = ConstraintPatch(template, update, obj_ref=transition)
 
         assert cp.template_ref == template
-        assert cp.transition_ref == transition
+        assert cp.obj_ref == transition
         assert cp.change == update
 
     @staticmethod
@@ -42,12 +42,12 @@ class TestConstraintPatch:
         location = template.graph._named_locations["l0"]
         constraints = location.invariant.constraints
 
-        update = ConstraintUpdate(constraints[0], 15)
+        update = ConstraintUpdate(constraints[0], 15)  # type: ignore
 
-        cp = ConstraintPatch(template, update, location_ref=location)
+        cp = ConstraintPatch(template, update, obj_ref=location)
 
         assert cp.template_ref == template
-        assert cp.location_ref == location
+        assert cp.obj_ref == location
         assert cp.change == update
 
 
@@ -75,9 +75,9 @@ class TestConstraintCache:
         transition = template.graph._transitions[0]  # First template
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 15)
+        update = ConstraintUpdate(constraints[0], 15)  # type: ignore
 
-        cp = ConstraintPatch(template, update, transition_ref=transition)
+        cp = ConstraintPatch(template, update, obj_ref=transition)
         cc.cache(cp)
 
         assert cc.patches == [cp]
@@ -94,9 +94,9 @@ class TestConstraintCache:
         transition = template.graph._transitions[0]  # First template
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 15)
+        update = ConstraintUpdate(constraints[0], 15)  # type: ignore
 
-        cp = ConstraintPatch(template, update, transition_ref=transition)
+        cp = ConstraintPatch(template, update, obj_ref=transition)
         cc.cache(cp)
 
         lines = open(testcase_dir + "constraint_cache_xml_files/test01.xml").readlines()
@@ -105,6 +105,6 @@ class TestConstraintCache:
         cc._apply_single_patch(lines_subject_to_change, cc.patches[0])
 
         # 56th line is changed.
-        assert lines[:55] == lines_subject_to_change[:55]
-        assert lines[56:] == lines_subject_to_change[56:]
-        assert lines[55].replace("10", "15") == lines_subject_to_change[55]
+        assert lines[:56] == lines_subject_to_change[:56]
+        assert lines[57:] == lines_subject_to_change[57:]
+        assert lines[56].replace("10", "15") == lines_subject_to_change[56]

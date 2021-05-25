@@ -5,7 +5,12 @@ let
     projectDir = ./.;
     editablePackageSources = {
       uppaal-py = ./lib;
-      tests = ./.;
     };
+    overrides = pkgs.poetry2nix.overrides.withDefaults (self: super: {
+      lazy-object-proxy = pkgs.python38Packages.lazy-object-proxy;
+      decopatch = pkgs.python38Packages.decopatch;
+      pytest-cases = pkgs.python38Packages.pytest-cases;
+    });
+
   };
 in myEnv.env

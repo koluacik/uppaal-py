@@ -273,8 +273,7 @@ clock x, y, z, t, u, v, w;</declaration>
 			<source ref="id23"/>
 			<target ref="id24"/>
 			<label kind="guard" x="85" y="-144">y &gt;= 20</label>
-			<label kind="assignment" x="85" y="-110">z = 0,
-x = 0</label>
+			<label kind="assignment" x="85" y="-110">z = 0, x = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -547,8 +546,7 @@ clock x, y, z, t, u, v, w;</declaration>
 			<source ref="id23"/>
 			<target ref="id24"/>
 			<label kind="guard" x="85" y="-144">y &gt;= 20</label>
-			<label kind="assignment" x="85" y="-110">z = 0,
-x = 0</label>
+			<label kind="assignment" x="85" y="-110">z = 0, x = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -821,8 +819,7 @@ clock x, y, z, t, u, v, w;</declaration>
 			<source ref="id23"/>
 			<target ref="id24"/>
 			<label kind="guard" x="85" y="-144">y &gt;= 20</label>
-			<label kind="assignment" x="85" y="-110">z = 0,
-x = 0</label>
+			<label kind="assignment" x="85" y="-110">z = 0, x = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -1095,8 +1092,7 @@ clock x, y, z, t, u, v, w;</declaration>
 			<source ref="id23"/>
 			<target ref="id24"/>
 			<label kind="guard" x="85" y="-144">y &gt;= 20</label>
-			<label kind="assignment" x="85" y="-110">z = 0,
-x = 0</label>
+			<label kind="assignment" x="85" y="-110">z = 0, x = 0</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.

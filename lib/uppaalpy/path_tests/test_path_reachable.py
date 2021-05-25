@@ -12,12 +12,12 @@ def test_reachable_path(fp):
     assert p.path_realizable(path, True)[0] == True
 
 
-@pytest.mark.parametrize("fp", not_reachable_nta())
-def test_not_reachable_path(fp):
-    """Test not realizable paths."""
-    nta = read_file(fp)
-    path = get_path_from_query_comment(nta)
-    assert p.path_realizable(path)[0] == False
+# @pytest.mark.parametrize("fp", not_reachable_nta())
+# def test_not_reachable_path(fp):
+#     """Test not realizable paths."""
+#     nta = read_file(fp)
+#     path = get_path_from_query_comment(nta)
+#     assert p.path_realizable(path)[0] == False
 
 
 @pytest.mark.parametrize("fp", reachable_nta())

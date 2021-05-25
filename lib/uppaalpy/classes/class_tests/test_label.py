@@ -1,99 +1,33 @@
 """Unit tests for Label class."""
-import random
-import string
 
-import lxml.etree as ET
-import pytest
+from pytest_cases.case_parametrizer_new import parametrize_with_cases
 
-from uppaalpy import Label
-
-from .helpers import list_xml_in_dir, testcase_dir
-
-label_kinds_list = [
-    "synchronisation",
-    "assignment",
-    "exponentialrate",
-    "testcode",
-    "testcodeEnter",
-    "testcodeExit",
-    "select",
-]
-
-
-@pytest.fixture(params=label_kinds_list)
-def label_kind(request):
-    """Fixture for label kinds."""
-    return request.param
-
-
-def random_label_value():
-    """Generate random ascii words."""
-    words = []
-    for _ in range(random.randint(1, 10)):
-        word = []
-        for _ in range(random.randint(1, 20)):
-            word.append(random.choice(string.ascii_letters))
-        words.append("".join(word))
-    return " ".join(words)
-
-
-@pytest.fixture(params=[random_label_value() for _ in range(2)])
-def label_value(request):
-    """Fixture for label values."""
-    return request.param
-
-
-def random_position():
-    """Generate random int pair."""
-    return (random.randint(-100, 100), random.randint(-100, 100))
-
-
-@pytest.fixture(params=[random_position() for _ in range(2)])
-def label_position(request):
-    """Fixture for label values."""
-    return request.param
-
-
-@pytest.fixture(params=list_xml_in_dir(testcase_dir + "label_xml_files"))
-def label_element(request):
-    """Fixture for Elements to be converted to Labels."""
-    return ET.parse(request.param).getroot()
+from uppaalpy.classes.class_tests.test_label_cases import (
+    CaseLabelFromElement,
+    CaseLabelInit,
+    CaseLabelToElement,
+)
+from uppaalpy.classes.simplethings import Label
 
 
 class TestLabel:
-    """Label tests."""
+    @parametrize_with_cases("kind, val, pos", cases=CaseLabelInit)
+    def test_init(self, kind, val, pos):
+        Label(kind, val, pos)
 
-    @staticmethod
-    def test_label_init_no_pos(label_kind, label_value):
-        """Test Label.__init__.
+    @parametrize_with_cases("element", cases=CaseLabelFromElement)
+    def test_from_element(self, element):
+        Label.from_element(element)
 
-        Should not throw exceptions.
-        """
-        Label(label_kind, label_value)
+    @parametrize_with_cases("element", cases=CaseLabelToElement)
+    def test_to_element(self, element):
+        e = Label.from_element(element)
+        element2 = e.to_element()
+        assert element.tag == element2.tag
+        assert element.text == element2.text
+        assert element.get("x") == element2.get("x")
+        assert element.get("y") == element2.get("y")
 
-    @staticmethod
-    def test_label_init_with_pos(label_kind, label_value, label_position):
-        """Test Label.__init__.
 
-        Should not throw exceptions.
-        """
-        Label(label_kind, label_value, label_position)
-
-    @staticmethod
-    def test_label_from_element(label_element):
-        """Test Label.from_element."""
-        my_label = Label.from_element(label_element)
-        assert my_label.kind == label_element.get("kind")
-        assert str(my_label.pos[0]) == label_element.get("x")
-        assert str(my_label.pos[1]) == label_element.get("y")
-        assert my_label.value == label_element.text
-
-    @staticmethod
-    def test_label_to_element(label_element):
-        """Test Label.to_element."""
-        my_label = Label.from_element(label_element)
-        my_element = my_label.to_element()
-        assert my_element.get("kind") == label_element.get("kind")
-        assert my_element.get("x") == label_element.get("x")
-        assert my_element.get("y") == label_element.get("y")
-        assert my_element.text == label_element.text
+class TestUpdateLabel:
+    pass

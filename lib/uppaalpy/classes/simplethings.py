@@ -1,17 +1,28 @@
 """Basic classes used by other classes throughout the project."""
+
+from typing import List, Optional, Tuple, Type, TypeVar
+
 import lxml.etree as ET
+
+from uppaalpy.classes import context as c
+from uppaalpy.classes import expr as e
+
+PosType = Tuple[int, int]
+Constraints = List[e.ConstraintExpression]
+Updates = List[e.UpdateExpression]
+
+L = TypeVar("L", bound="Label")
 
 
 class Label:
     """A label object from UPPAAL.
 
     Many location and edge attributes in UPPAAL are stored as xml elements with
-    tag 'label', and differentiated by their attribute 'kind'.  The 'content'
-    of these elements are currently stored as strings. Finally, they also have
-    a location 'x' and 'y'. Some label kinds like test code are not visible in
-    the UPPAAL template editor. These labels do not have a pos.
+    tag 'label', and differentiated by their attribute 'kind'. Finally, they
+    also have a location 'x' and 'y'. Some label kinds like test code are not
+    visible in the UPPAAL template editor. These labels do not have a pos.
 
-    See subclass Constraint.
+    See subclass ConstraintLabel and UpdateLabel.
 
     Attributes:
         kind: String for differentiating the kind of the label.
@@ -19,10 +30,12 @@ class Label:
         pos: A pair of ints for position. Some label kinds do not have a pos.
     """
 
-    def __init__(self, kind, value, pos=None):
+    def __init__(self, kind: str, value: str, pos: Optional[PosType] = None) -> None:
         """Construct a Label object given kind, value, and optional pos.
 
-        For invariants and guards, subclass Constraint is used.
+        For invariants and guards, subclass ConstraintLabel is used.
+        For clock resets and other updates during a transition, subclass
+        UpdateLabel is used.
 
         Args:
             kind: The kind of the label. See example xml files for valid
@@ -35,7 +48,7 @@ class Label:
         self.pos = pos
 
     @classmethod
-    def from_element(cls, et):
+    def from_element(cls: Type[L], et) -> L:
         """Convert an Element to a Label object."""
         pos = (int(et.get("x")), int(et.get("y"))) if et.get("x") is not None else None
         return cls(et.get("kind"), et.text, pos)
@@ -50,67 +63,174 @@ class Label:
         return element
 
 
-class Constraint(Label):
+class ConstraintLabel(Label):
     """A specific label for invariants or transitions in timed automata.
 
-    The attribute constraints is a list of parsed SimpleConstraint.
+    The attribute constraints is a list ConstraintExpressions.
     It simplifies computations involving constraints. This class overrides
     the Label.to_element() and Label.from_element() methods. self.value
-    is ignored after initialization. Also see class SimpleConstraint.
+    is ignored after initialization. Also see class ConstraintExpression
 
     Extra Attributes:
-        constraints: List of SimpleConstraint.
+        constraints: List of ConstraintExpression
     """
 
-    def __init__(self, kind, value, pos, constraints=[]):
-        """Construct a Constraint from Label args, and optionally, constraints.
+    def __init__(
+        self,
+        kind: str,
+        value: str,
+        pos: Optional[PosType],
+        ctx: c.Context,
+        constraints: Optional[Constraints] = None,
+    ) -> None:
+        """Construct a ConstraintLabel from Label args, and constraints.
 
-        If a non-empty list of constraints is not provided, the value attribute
-        is parsed, instead.
+        If a constraints is None, the value attribute is parsed, instead.
 
         Args:
             kind: String denoting the kind of the constraint. Must be "guard"
                 or "invariant".
             value: String denoting the text content of the Label.
             pos: Pair of ints for the position of the Label.
-            constraints: List of SimpleConstraint objects. If empty (default),
-                value is parsed, instead.
+            ctx: Context object to lookup declarations.
+            constraints: List of ConstraintExpression objects. If None
+                (default), value is parsed, instead.
         """
         super().__init__(kind, value, pos)
-        self.constraints = (
+        self.constraints: Constraints = (
             constraints
             if constraints
-            else SimpleConstraint.parse_inequality(self.value)
+            else [
+                e.ConstraintExpression.parse_expr(s, ctx)  # Factory
+                for s in e.ConstraintExpression.split_into_simple(value)
+            ]
         )
 
     @classmethod
-    def from_label(cls, label, constraints=[]):
-        """Construct a Constraint from a Label object.
+    def from_label(
+        cls: Type["ConstraintLabel"],
+        label: Label,
+        ctx: c.Context,
+        constraints: Optional[Constraints] = None,
+    ) -> "ConstraintLabel":
+        """Construct a ConstraintLabel from a Label object.
 
         Args:
             label: A label object.
-            constraints: List of SimpleConstraint objects. If empty (default),
-                value field of the label is parsed, instead.
+            ctx: Context object.
+            constraints: List of ConstraintExpression objects. If None
+                (default), value field of the label is parsed, instead.
         """
-        return cls(label.kind, label.value, label.pos, constraints)
+        return cls(label.kind, label.value, label.pos, ctx, constraints)
 
     @classmethod
-    def from_element(cls, et):
-        """Convert an Element to a Constraint."""
+    def from_element(
+        cls: Type["ConstraintLabel"], et, ctx: c.Context
+    ) -> "ConstraintLabel":
+        """Convert an Element to a ConstraintLabel."""
         pos = (int(et.get("x")), int(et.get("y"))) if et.get("x") is not None else None
-        return cls(et.get("kind"), et.text, pos)
+        return cls(et.get("kind"), et.text, pos, ctx)
 
     def to_element(self):
         """Convert this object to an Element.
 
-        self.text is ignored, SimpleConstraint.to_string() is used instead.
+        self.text is ignored, ConstraintExpression.to_string() is used instead.
         """
         element = ET.Element("label", attrib={"kind": self.kind})
-        element.text = " && ".join([c.to_string() for c in self.constraints])
+        element.text = e.ConstraintExpression.join_expressions(self.constraints)
         if self.pos is not None:
             element.set("x", str(self.pos[0]))
             element.set("y", str(self.pos[1]))
         return element
+
+
+class UpdateLabel(Label):
+    """A specific label for updates on transitions in timed automata.
+
+    The attribute updates is a list of UpdateExpressions.
+    This Class overrides the Label.to_element() and from_element() methods.
+    self.value is ignored after initialization. Also see class UpdateExpression.
+
+    Attributes:
+        updates: List of UpdateExpression.
+    """
+
+    def __init__(
+        self,
+        kind: str,
+        value: str,
+        pos: Optional[PosType],
+        ctx: c.Context,
+        updates: Optional[Updates] = None,
+    ) -> None:
+        """Construct a UpdateLabel from Label args, and updates.
+
+        If updates is None, the value attribute is parsed, instead.
+
+        Args:
+            kind: String denoting the kind of the update. Must be "assignment".
+            value: String denoting the text content of the Label.
+            pos: Pair of ints for the position of the Label.
+            ctx: Context object for looking up declarations.
+            updates: List of UpdateExpression objects. If None (default), value
+                is parsed, instead.
+        """
+        super().__init__(kind, value, pos)
+        self.updates = (
+            updates
+            if updates
+            else [
+                e.UpdateExpression.parse_expr(s, ctx)
+                for s in e.UpdateExpression.split_into_simple(value)
+            ]
+        )
+
+    @classmethod
+    def from_label(
+        cls: Type["UpdateLabel"],
+        label: Label,
+        ctx: c.Context,
+        updates: Optional[Updates] = None,
+    ) -> "UpdateLabel":
+        """Construct a UpdateLabel from a Label object.
+
+        Args:
+            label: A label object.
+            ctx: Context object.
+            constraints: List of UpdateExpression objects. If None
+                (default), value field of the label is parsed, instead.
+        """
+        return cls(label.kind, label.value, label.pos, ctx, updates)
+
+    @classmethod
+    def from_element(cls: Type["UpdateLabel"], et, ctx: c.Context) -> "UpdateLabel":
+        """Convert an Element to an UpdateLabel."""
+        pos = (int(et.get("x")), int(et.get("y"))) if et.get("x") is not None else None
+        return cls(et.get("kind"), et.text, pos, ctx)
+
+    def to_element(self):
+        """Convert this object to an Element.
+
+        self.text is ignored, UpdateExpression.to_string() is used instead.
+        """
+        element = ET.Element("label", attrib={"kind": self.kind})
+        element.text = e.UpdateExpression.join_expressions(self.updates)
+        if self.pos is not None:
+            element.set("x", str(self.pos[0]))
+            element.set("y", str(self.pos[1]))
+        return element
+
+    def get_resets(self) -> List[str]:
+        """Return list of clocks to be reset."""
+        res = []
+        for expr in self.updates:
+            if isinstance(expr, e.ClockResetExpression):
+                if expr.clock not in res:
+                    res.append(expr.clock)
+        return res
+
+
+T = TypeVar("T", bound="SimpleField")
 
 
 class SimpleField:
@@ -125,12 +245,12 @@ class SimpleField:
 
     tag = ""
 
-    def __init__(self, text):
+    def __init__(self, text: str) -> None:
         """Given a string, construct a SimpleField."""
         self.text = text
 
     @classmethod
-    def from_element(cls, et):
+    def from_element(cls: Type[T], et) -> Optional[T]:
         """Convert an Element to a SimpleField object."""
         if et is None:
             return None
@@ -158,72 +278,18 @@ class SystemDeclaration(SimpleField):
     tag = "system"
 
 
-class LocalDeclaration(SimpleField):
+class Declaration(SimpleField):
     """A derived class for simple strings in UPPAAL.
 
-    Contains the declarations of the local variables of templates.
+    Contains the declarations of constants, variables, and clocks of
+    the system and the templates.
+
+    Can be parsed by Context class to generate a context.
 
     See base class SimpleField.
     """
 
     tag = "declaration"
-
-
-class Declaration(SimpleField):
-    """A derived class for global variable declarations.
-
-    This class extends the base class by constructing two dictionaries for storing
-    the initial state of the mutable variables, and a lookup table of the constant
-    variables based on the declared variables in this field. Currently, only
-    int and const int variables are taken into consideration. Declarations should
-    be of form
-    [const] int (identifier "=" value) (identifier "=" value)* ";"
-
-    See base class LocalDeclaration
-    """
-
-    constants = {}
-    initial_state = {}
-
-    def __init__(self, text):
-        """Given a string, construct a declaration."""
-        super().__init__(text)
-
-        for l in self.text.split("\n"):
-            if l.startswith("const int"):
-                self._parse_constants(l)
-            elif l.startswith("int"):
-                self._parse_variables(l)
-
-    def _parse_constants(self, line):
-        """Given a line starting with "cont int" parse constants."""
-        # const int c = 10, c1 = 100, var; // Some comments...
-        #           ^..............,,,,,^
-        pairs = self._parse_line(10, line)
-        for i, v in pairs:
-            self.initial_state[i] = v
-
-    def _parse_variables(self, line):
-        """Given a line starting with "int" parse variables and initial values."""
-        # int c = 10, c1 = 100, var; // Some comments...
-        #     ^...................^
-        pairs = self._parse_line(4, line)
-        for i, v in pairs:
-            self.initial_state[i] = v
-
-    @staticmethod
-    def _parse_line(offset, line):
-        res = []
-        for init in line[offset : line.index(";")].split(","):
-            # Declarations with no initialisers are initialized to 0 for ints.
-            decl = init.split("=")
-            iden = decl[0]
-            if len(decl) == 2:
-                val = decl[1]
-            else:
-                val = "0"
-            res.append((iden.strip(), int(val.strip())))
-        return res
 
 
 class Parameter(SimpleField):
@@ -240,13 +306,13 @@ class Name:
     UPPAAL xml format regardless.
     """
 
-    def __init__(self, name, pos):
+    def __init__(self, name: str, pos: Optional[Tuple[int, int]]) -> None:
         """Given a string and a pair of ints, construct a Name object."""
         self.name = name
         self.pos = pos
 
     @classmethod
-    def from_element(cls, et):
+    def from_element(cls: Type["Name"], et) -> Optional["Name"]:
         """Convert an Element to a Name object."""
         if et is not None:
             if et.get("x") is not None:
@@ -255,9 +321,7 @@ class Name:
 
     def to_element(self):
         """Convert this object to an Element. Called from NTA.to_element."""
-        element = ET.Element(
-            "name"
-        )  # , attrib={"x": str(self.pos[0]), "y": str(self.pos[1])})
+        element = ET.Element("name")
         element.text = self.name
 
         if self.pos is not None:
@@ -275,13 +339,13 @@ class Query:
         comment: String for commenting the query.
     """
 
-    def __init__(self, formula, comment):
+    def __init__(self, formula: str, comment: str) -> None:
         """Query object initializer."""
         self.formula = formula
         self.comment = comment
 
     @classmethod
-    def from_element(cls, et):
+    def from_element(cls: Type["Query"], et) -> "Query":
         """Convert an Element to a Query object."""
         return cls(et.find("formula").text, et.find("comment").text)
 
@@ -293,84 +357,3 @@ class Query:
         comment = ET.SubElement(query, "comment")
         comment.text = self.comment
         return query
-
-
-class SimpleConstraint:
-    """Class representing a simple clock constraint.
-
-    Label objects for transition guards and location invariants are actually
-    instances of the subclass Constraint of the class Label. They have
-    additional attributes for storing a list of SimpleConstraints.
-
-    Attributes:
-        clocks: A list of strings with list length either one or two.
-            ["x", "y"] denotes x - y and ["x"] simply means x in the LHS
-            of the simple constraint.
-        operator: String for the comparison operator. Can be '>', '<', or '='.
-        threshold: Numeric comparison value.
-        equality: Boolean value for determining the whether the clock value
-            can be equal to the threshold value, e.g. x < 10 or x <= 10
-    """
-
-    def __init__(self, clocks, operator, threshold, equality=False):
-        """Construct a SimpleConstraint.
-
-        Arguments:
-            clocks: List of strings for clock names.
-            operator: String for comparison operator, one of '<', '>', or '='.
-            threshold: Numeric value that is used for comparison.
-            equality: Bool
-        """
-        self.clocks = clocks
-        self.operator = operator
-        self.threshold = threshold
-        self.equality = equality
-
-    @classmethod
-    def parse_inequality_simple(cls, inequality):
-        """Given a simple constraint string, return an SimpleConstraint object."""
-        # Taken from
-        # https://github.com/jar-ben/tamus/blob/master/uppaalHelpers/timed_automata.py
-        ind = 0
-        for i in range(len(inequality)):
-            if inequality[i] in ["<", ">", "="]:
-                ind = i
-                break
-        lhs = inequality[0:ind].strip()
-        operator = inequality[ind]
-        equality = False
-        if inequality[ind + 1] == "=":
-            ind += 1
-            equality = True
-        rhs = inequality[ind + 1 :].strip()
-        threshold = int(rhs)
-        clocks = [c.rstrip().strip() for c in lhs.split("-")]
-        return cls(clocks, operator, threshold, equality)
-
-    @classmethod
-    def parse_inequality(cls, inequality):
-        """Split string into simple constraints, return SimpleConstraint list."""
-        return [cls.parse_inequality_simple(s) for s in inequality.split("&&")]
-
-    def to_string(self, escape=False):
-        """Convert the object to a string.
-
-        If escape is True '<', '>', etc. will be escaped to make the
-        resulting string xml-friendly.
-        """
-        res = " ".join(
-            [
-                " - ".join(self.clocks),
-                self.operator + ("=" if self.equality else ""),
-                str(self.threshold),
-            ]
-        )
-        if escape:
-            res = (
-                res.replace("&", "&amp;")
-                .replace('"', "&apos;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("'", "&quot;")
-            )
-        return res

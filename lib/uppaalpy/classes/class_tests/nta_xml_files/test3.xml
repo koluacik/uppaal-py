@@ -34,8 +34,7 @@ const int k = 2;</declaration>
 			<source ref="id1"/>
 			<target ref="id0"/>
 			<label kind="guard" x="144" y="72">x&lt;=10</label>
-			<label kind="assignment" x="144" y="104">x = 0,
-id = pid</label>
+			<label kind="assignment" x="144" y="104">x = 0, id = pid</label>
 		</transition>
 		<transition>
 			<source ref="id0"/>

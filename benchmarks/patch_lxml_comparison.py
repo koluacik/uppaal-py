@@ -13,7 +13,7 @@ def scenario1():
     """Scenario1: Insert a constraint to l0 in first template."""
     nta = uppaalpy.NTA.from_xml(small_nta)
     location = nta.templates[0].graph._named_locations["l0"]
-    new_constraint = uppaalpy.SimpleConstraint(["x", "y"], "<", 15)
+    new_constraint = uppaalpy.SCConstraint(["x", "y"], "<", 15)
     nta.change_location_constraint(
         location, operation="insert", simple_constraint=new_constraint
     )
@@ -47,7 +47,7 @@ def scenario4():
     nta = uppaalpy.NTA.from_xml(small_nta)
     # The transition without guard between l1 and l2.
     transition = nta.templates[0].graph._transitions[1]
-    new_constraint = uppaalpy.SimpleConstraint(["x", "y"], "<", 15)
+    new_constraint = uppaalpy.SCConstraint(["x", "y"], "<", 15)
     nta.change_transition_constraint(
         transition, operation="insert", simple_constraint=new_constraint
     )
@@ -65,7 +65,7 @@ def scenario5():
     )
 
     transition = nta.templates[0].graph._transitions[1]
-    new_constraint = uppaalpy.SimpleConstraint(["x", "y"], "<", 15)
+    new_constraint = uppaalpy.SCConstraint(["x", "y"], "<", 15)
     nta.change_transition_constraint(
         transition, operation="insert", simple_constraint=new_constraint
     )
@@ -85,7 +85,7 @@ def scenario6():
     nta = uppaalpy.NTA.from_xml(small_nta)
     # The transition without guard between l1 and l2.
     transition = nta.templates[0].graph._transitions[1]
-    new_constraint = uppaalpy.SimpleConstraint(["x", "y"], "<", 15)
+    new_constraint = uppaalpy.SCConstraint(["x", "y"], "<", 15)
 
     for _ in range(5):
         nta.change_transition_constraint(

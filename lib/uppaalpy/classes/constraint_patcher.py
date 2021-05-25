@@ -1,7 +1,15 @@
 """Class definitions for fast constraint changes."""
 
+from abc import ABCMeta, abstractmethod
+from copy import copy
+from typing import List, Optional, Union, cast
 
-from uppaalpy.classes.simplethings import SimpleConstraint
+from uppaalpy.classes import nodes as n
+from uppaalpy.classes import nta
+from uppaalpy.classes import templates as te
+from uppaalpy.classes import transitions as tr
+from uppaalpy.classes.expr import ClockConstraintExpression
+from uppaalpy.classes.simplethings import ConstraintLabel
 
 
 class ConstraintCache:
@@ -11,11 +19,11 @@ class ConstraintCache:
     small updates on constraints is wasteful. Caching updates on constraints
     by creating patches and applying these patches by linewise editing might
     be a faster alternative. However, since the xml file is not actually parsed,
-    the implementation requires the file to be formatted properly. Namely,
+    the implementation requires the file to be formatted properly. Precisely,
     each "leaf" item must be on a separate single line, and each "inner" item
     must have their "start" and "end" on a separate single line:
 
-    ex:
+    example:
     <transition>
         <source ref="id1"/>
         <target ref="id0"/>
@@ -23,7 +31,7 @@ class ConstraintCache:
     </transition>
     """
 
-    def __init__(self, nta):
+    def __init__(self, nta: nta.NTA) -> None:
         """Initialize ConstraintCache.
 
         Attributes:
@@ -31,17 +39,17 @@ class ConstraintCache:
                 "flushed" to an output file when the user choses to do so.
             nta: The parent nta.
         """
-        self.patches = []
+        self.patches: List[ConstraintPatch] = []
         self.nta = nta
 
-    def cache(self, patch):
+    def cache(self, patch: "ConstraintPatch") -> None:
         """Store a patch."""
         self.patches.append(patch)
 
-    def _apply_single_patch(self, lines, patch):
+    def _apply_single_patch(self, lines: List[str], patch: "ConstraintPatch") -> None:
         """Apply a single patch."""
 
-        def handle_loc(i, loc):
+        def handle_loc(i: int, loc: n.Location) -> None:
             # Find the line with the relevant location.
             loc_string = '<location id="%s"' % loc.id
             while loc_string not in lines[i]:
@@ -68,9 +76,9 @@ class ConstraintCache:
 
             patch.change.patch_line(lines, target_index, location_line_index)
 
-        def handle_trans(i, trans):
+        def handle_trans(i: int, trans: tr.Transition) -> None:
             # Find the line with the relevant transition.
-            trans_index = trans.template.graph._transitions.index(patch.transition_ref)
+            trans_index = trans.template.graph._transitions.index(trans)
             curr_trans = -1
             while curr_trans < trans_index:
                 if lines[i].strip().startswith("<transition>"):
@@ -109,23 +117,34 @@ class ConstraintCache:
             i += 1
 
         # Check whether the change is on a location or a transition.
-        if patch.location_ref is not None:
-            handle_loc(i, patch.location_ref)
+        if type(patch.obj_ref) == n.Location:
+            handle_loc(i, cast(n.Location, patch.obj_ref))
 
         else:
-            handle_trans(i, patch.transition_ref)
+            handle_trans(i, cast(tr.Transition, patch.obj_ref))
 
-    def apply_patches(self, lines):
+    def apply_patches(self, lines: List[str]):
         """Given a list of lines, apply changes the list."""
         for patch in self.patches:
             self._apply_single_patch(lines, patch)
 
 
 class ConstraintPatch:
-    """Class for capturing a change on a guard and location."""
+    """Class for capturing a change on guards and invariants.
 
-    def __init__(self, template_ref, change, location_ref=None, transition_ref=None):
+    Currently insertion, removal, and update operations on clock constraint
+    expressions are supported.
+    """
+
+    def __init__(
+        self,
+        template_ref: te.Template,
+        change: "ConstraintChange",
+        obj_ref: Union[n.Location, tr.Transition],
+    ) -> None:
         """Initialize ConstraintPatch.
+
+        obj_ref argument can be used for initializing the patch
 
         Args:
             template_ref: The parent template.
@@ -133,33 +152,39 @@ class ConstraintPatch:
             location_ref: The parent location.
             transition_ref: The parent transition.
         """
-        self.template_ref = template_ref  # kwargs["template"]
-        self.location_ref = location_ref  # kwargs.get("location")
-        self.transition_ref = transition_ref  # kwargs.get("transition")
-        self.change = change  # kwargs["change"]
+        self.template_ref = template_ref
+        self.change = change
+        self.obj_ref = obj_ref
 
 
-class ConstraintChange:
+class ConstraintChange(metaclass=ABCMeta):
     """Base class for the three operations on constraint changes.
 
     Attributes:
-        constraint: A SimpleConstraint.
+        constraint: A ClockConstraintExpression object.
     """
 
-    def __init__(self, constraint):
-        """Initialize class with the simple constraint to be changed."""
+    def __init__(self, constraint: ClockConstraintExpression) -> None:
+        """Initialize class with the clock constraint expr to be changed."""
         self.constraint = constraint
+
+    @abstractmethod
+    def patch_line(self, lines: List[str], index: int, parent_index: int = -1) -> None:
+        """Patch a list of lines."""
+        pass
 
 
 class ConstraintRemove(ConstraintChange):
     """Class for keeping track of a constraint removal."""
 
-    def __init__(self, constraint, remove_constraint=False):
+    def __init__(
+        self, constraint: ClockConstraintExpression, remove_label: bool = False
+    ) -> None:
         """Create ConstraintRemove given a simple constraint to remove."""
         super().__init__(constraint)
-        self.remove_constraint = remove_constraint
+        self.remove_label = remove_label
 
-    def patch_line(self, lines, index, parent_index=-1):
+    def patch_line(self, lines: List[str], index: int, parent_index: int = -1) -> None:
         """Remove a constraint by editing or deleting a line.
 
         Args:
@@ -169,7 +194,8 @@ class ConstraintRemove(ConstraintChange):
                 deleted.
             parent_index: Not used.
         """
-        if self.remove_constraint:
+        parent_index  # for ignoring unused hint.
+        if self.remove_label:
             lines.pop(index)
 
         else:
@@ -185,7 +211,7 @@ class ConstraintRemove(ConstraintChange):
                 + constraint_line[end:]
             )
 
-    def _find_matching_constraint(self, constraints):
+    def _find_matching_constraint(self, constraints: List[str]) -> int:
         """Find the index of the constraint to be deleted.
 
         Each string is compared with the constraint to be removed.
@@ -206,7 +232,11 @@ class ConstraintRemove(ConstraintChange):
 class ConstraintInsert(ConstraintChange):
     """Class for keeping track of a constraint insertion."""
 
-    def __init__(self, constraint, newly_created=None):
+    def __init__(
+        self,
+        constraint: ClockConstraintExpression,
+        newly_created: Optional[ConstraintLabel] = None,
+    ) -> None:
         """Create ConstraintInsert given a simple constraint to insert.
 
         If a new guard/invariant is created, self.newly_created is set to the
@@ -215,7 +245,7 @@ class ConstraintInsert(ConstraintChange):
         super().__init__(constraint)
         self.newly_created = newly_created
 
-    def patch_line(self, lines, index, parent_index):
+    def patch_line(self, lines: List[str], index: int, parent_index: int) -> None:
         """Insert a constraint by editing or inserting a line.
 
         Args:
@@ -257,13 +287,15 @@ class ConstraintInsert(ConstraintChange):
 class ConstraintUpdate(ConstraintChange):
     """Class for keeping track of a constraint update."""
 
-    def __init__(self, constraint, new_threshold):
+    def __init__(
+        self, constraint: ClockConstraintExpression, new_threshold: int
+    ) -> None:
         """Initialize class with the new and the old thresholds."""
         super().__init__(constraint)
         self.old = constraint.threshold
         self.new = new_threshold
 
-    def patch_line(self, lines, index, parent_index=-1):
+    def patch_line(self, lines: List[str], index: int, parent_index: int = -1) -> None:
         """Update a constraint by editing a line.
 
         Args:
@@ -271,6 +303,7 @@ class ConstraintUpdate(ConstraintChange):
             index: Integer index of the current line.
             parent_index: Not used.
         """
+        parent_index
         constraint_line = lines[index]
         start = constraint_line.index(">") + 1  # '>' in ...y="..">
         end = constraint_line.index("<", start)  # '<' in </label>
@@ -285,12 +318,12 @@ class ConstraintUpdate(ConstraintChange):
             + constraint_line[end:]
         )
 
-    def _find_matching_constraint(self, constraints):
+    def _find_matching_constraint(self, constraints: List[str]) -> int:
         """Find the index of the constraint to be updated.
 
         Each string is compared with the constraint to be updated.
         """
-        # Get the old comparison string of
+        # Get the old comparison string.
         comparison_string = (
             self.constraint.to_string(escape=True)
             .replace(" ", "")
@@ -307,7 +340,8 @@ class ConstraintUpdate(ConstraintChange):
             )
         )
 
-    def generate_new_constraint(self):
-        """Create a SimpleConstraint with the updated threshold."""
-        c = self.constraint
-        return SimpleConstraint(c.clocks, c.operator, self.new, c.equality)
+    def generate_new_constraint(self) -> ClockConstraintExpression:
+        """Create a copy ClockConstraintExpression with the updated threshold."""
+        res = copy(self.constraint)
+        res.threshold = str(self.new)
+        return res
