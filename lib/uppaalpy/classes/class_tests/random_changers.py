@@ -1,7 +1,11 @@
 """Helpers for making random changes on NTA."""
+#TODO: Reimplement this module
 
 import random
-from uppaalpy import SCConstraint, NTA
+from uppaalpy import NTA
+from uppaalpy.classes.expr import ClockConstraintExpression
+
+
 
 def select_random_transition(nta, nonempty=False):
     """Select a random transition.
@@ -35,14 +39,15 @@ def select_random_location(nta, nonempty=False):
 def make_random_insert(nta):
     """Insert a random constraint to a random transition or location."""
     change_transition = random.choice([True, False])
+    ctx = nta.context
 
     if change_transition:
         trans = select_random_transition(nta)
         nta.change_transition_constraint(
             trans,
             operation="insert",
-            simple_constraint=SCConstraint(
-                ["x"], random.choice(["<", ">"]), random.randint(1, 100)
+            simple_constraint=ClockConstraintExpression(
+                "c" + random.choice(["<", ">"]) + str(random.randint(1, 100)), ctx
             ),
         )
 

@@ -38,7 +38,7 @@ class Expression(metaclass=ABCMeta):
 
     delimiter: str = ""
 
-    def __init__(self, exprstr: str, _: c.Context, ops: Sequence[str] = "=<>!+-") -> None:
+    def __init__(self, exprstr: str, ctx: c.Context, ops: Sequence[str] = "=<>!+-") -> None:
         """Create Expression with lhs, op, and rhs from an expression string."""
         self.lhs, self.op, self.rhs = self.tokenize(exprstr, ops)
 
@@ -245,6 +245,8 @@ class ClockConstraintExpression(ConstraintExpression):
         If escape is True '<', '>', etc. will be escaped to make the
         resulting string xml-friendly.
         """
+        if self.equality:
+            self.operator += "="
         res = super().to_string()
         if escape:
             res = (

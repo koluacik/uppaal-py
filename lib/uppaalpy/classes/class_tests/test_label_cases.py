@@ -2,6 +2,10 @@ from itertools import product
 
 from lxml import etree as ET
 from pytest_cases import parametrize
+from uppaalpy.classes.class_tests.test_context_cases import DataContext
+
+from uppaalpy.classes.expr import ClockResetExpression, UpdateExpression
+from uppaalpy.classes.simplethings import UpdateLabel
 
 # from uppaalpy.classes.class_tests.test_context_cases import DataContext
 
@@ -86,3 +90,35 @@ class CaseLabelToElement:
     @parametrize("e", C.label_element)
     def case_1(self, e):
         return e
+
+class CaseUpdateLabelInit:
+    class C(DataLabel, DataContext):
+        pass
+
+    def case_updates_none(self):
+        ctx = self.C.ctx()
+        return "assignment", "i += 15", (0, 1), ctx, None
+
+    def case_updates_not_none(self):
+        ctx = self.C.ctx()
+        e = UpdateExpression("i += 15", ctx)
+        return "assignment", "i += 15", (0, 1), ctx, [e]
+
+    def case_updates_multi(self):
+        ctx = self.C.ctx()
+        e1 = UpdateExpression("i += 15", ctx)
+        e2 = ClockResetExpression("c = 0", ctx)
+        return "assignment", "i += 15", (0, 1), ctx, [e1, e2]
+
+class CaseUpdateResets:
+    class C(DataLabel, DataContext):
+        pass
+
+    def case_01(self):
+        return UpdateLabel("assignment", "i += 10", (0, 0), self.C.ctx()), []
+
+    def case_02(self):
+        return UpdateLabel("assignment", "c = 0", (0, 0), self.C.ctx()), ["c"]
+
+    def case_03(self):
+        return UpdateLabel("assignment", "c = 0, c1 = 0, i += 10", (0, 0), self.C.ctx()), ["c", "c1"]

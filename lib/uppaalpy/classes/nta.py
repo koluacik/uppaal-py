@@ -113,8 +113,7 @@ class NTA:
         operation: str,
         ccexp: ClockConstraintExpression,
         *,
-        threshold_delta: Optional[int] = None,
-        threshold_function: Optional[Callable[[int], int]] = None,
+        threshold_function: Optional[Callable[[str], str]] = None,
     ) -> None:
         """Insert/remove/update a simple constraint expression.
 
@@ -131,11 +130,9 @@ class NTA:
                     guard/invariant label.
                 Update mode: ClockConstraintExpression whose threshold will be
                     changed.
-            threshold_delta: Integer value used in Update mode. The threshold
-                value is incremented by this value.
-            threshold_function: Unary function used in Update mode. The treshold
-                x is set to threshold_function(x). Has precedence over
-                threshold_delta.
+            threshold_function: Function f: str -> str used in Update mode. The
+                treshold x is set to threshold_function(x). Notice that x is
+                either an identifier or a value. In both cases its type is str.
 
         Insert mode:
         A new ClockConstraintExpression is inserted to the guard/invariant
@@ -149,11 +146,9 @@ class NTA:
         the label is removed, as well. A ConstraintRemove is created and cached.
 
         Update mode:
-        The ClockConstraintExpression object is updated with either the
-        threshold_function or the threshold_delta. A ConstraintUpdate is created
-        and cached.
+        The ClockConstraintExpression object is updated with the threshold_function.
+        A ConstraintUpdate is created and cached.
         """
-        ctx = self.context
         label = obj.get_constraint_label()
 
         if operation == "insert":
@@ -175,11 +170,7 @@ class NTA:
                 change = cp.ConstraintRemove(ccexp)
 
         else:  # operation == "update"
-            old = ctx.get_val(ccexp.threshold)
-            if threshold_function is not None:
-                new = threshold_function(old)
-            else:
-                new = threshold_delta + old
+            new = threshold_function(ccexp.threshold)
             change = cp.ConstraintUpdate(ccexp, new)
             index = label.constraints.index(ccexp)
             label.constraints.pop(index)

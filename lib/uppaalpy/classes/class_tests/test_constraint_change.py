@@ -3,19 +3,19 @@
 import pytest
 from pytest_cases.case_parametrizer_new import parametrize_with_cases
 
-# from uppaalpy import ConstraintLabel, ClockConstraintExpression
 from uppaalpy.classes.class_tests.test_constraint_change_cases import (
     CaseCRInit,
+    CaseIPatch,
+    CaseIinit,
     CaseRFind,
     CaseRPatch,
+    CaseUFind,
+    CaseUInit,
+    CaseUPatch,
 )
-# from uppaalpy.classes.class_tests.test_context_cases import DataContext
 from uppaalpy.classes.constraint_patcher import (
-    # ConstraintChange,
-    # ConstraintInsert,
-    # ConstraintInsert,
+    ConstraintInsert,
     ConstraintRemove,
-    # ConstraintUpdate,
 )
 
 
@@ -47,163 +47,43 @@ class TestConstraintRemove:
         assert lines == res
 
 
-# class TestConstraintInsert:
-#     """Unit tests for ConstraintInsert."""
-#
-#     @staticmethod
-#     def test_constraint_insert_init():
-#         """Test ConstraintInsert()."""
-#         c = ClockConstraintExpression(["x", "y"], "<", 5, True)
-#         ci = ConstraintInsert(c)
-#         assert ci.constraint == c
-#         assert ci.newly_created == None
-#
-#     @staticmethod
-#     def test_constraint_insert_init_with_new():
-#         """Test ConstraintInsert(), with newly_created set."""
-#         c = ClockConstraintExpression(["x", "y"], "<", 5, True)
-#         guard = ConstraintLabel("invariant", "", (0, 0), [c])
-#         ci = ConstraintInsert(c, guard)
-#         assert ci.constraint == c
-#         assert ci.newly_created == guard
-#
-#     @staticmethod
-#     def test_constraint_insert_patch_lines_location_basic_no_prior_invariant():
-#         """Test patch_line on locations, creating a new invariant."""
-#         lines = [
-#             '		<location id="id0" x="0" y="0">\n',
-#             "		</location>\n",
-#         ]
-#
-#         lines_expected = [
-#             '		<location id="id0" x="0" y="0">\n',
-#             '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5</label>\n',
-#             "		</location>\n",
-#         ]
-#
-#         c = ClockConstraintExpression(["x", "y"], "<", 5, True)
-#         invariant = ConstraintLabel("invariant", "", (18, -34), [c])
-#         ci = ConstraintInsert(c, invariant)
-#         ci.patch_line(lines, 0, 0)
-#
-#         assert lines == lines_expected
-#
-#     @staticmethod
-#     def test_constraint_insert_patch_lines_location_basic_with_prior_invariant():
-#         """Test patch_line on locations, without creating a new invariant."""
-#         lines = [
-#             '		<location id="id0" x="0" y="0">\n',
-#             '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5</label>\n',
-#             "		</location>\n",
-#         ]
-#
-#         lines_expected = [
-#             '		<location id="id0" x="0" y="0">\n',
-#             '			<label kind="invariant" x="18" y="-34">x - y &lt;= 5 &amp;&amp; c == 3</label>\n',
-#             "		</location>\n",
-#         ]
-#
-#         c = ClockConstraintExpression(["c"], "=", 3, True)
-#         ci = ConstraintInsert(c)
-#         ci.patch_line(lines, 1, 0)
-#
-#         assert lines == lines_expected
-#
-#     @staticmethod
-#     def test_constraint_insert_patch_lines_transition():
-#         """Test patch_line on transitions."""
-#         lines = [
-#             "		<transition>\n",
-#             '			<source ref="id0"/>\n',
-#             '			<source ref="id1"/>\n',
-#             "		</transition>\n",
-#         ]
-#
-#         lines_expected = [
-#             "		<transition>\n",
-#             '			<source ref="id0"/>\n',
-#             '			<source ref="id1"/>\n',
-#             '			<label kind="guard" x="18" y="-34">clock == 5</label>\n',
-#             "		</transition>\n",
-#         ]
-#
-#         c = ClockConstraintExpression(["clock"], "=", 5, True)
-#         guard = ConstraintLabel("guard", "", (18, -34), [c])
-#         ci = ConstraintInsert(c, guard)
-#         ci.patch_line(lines, 2, 0)
-#
-#         assert lines == lines_expected
-#
-#         lines = [
-#             "		<transition>\n",
-#             '			<source ref="id0"/>\n',
-#             '			<source ref="id1"/>\n',
-#             '			<label kind="guard" x="18" y="-34">clock2 == 5</label>\n',
-#             '			<label kind="synchronisation" x="18" y="-34">foo</label>\n',
-#             "		</transition>\n",
-#         ]
-#
-#         lines_expected = [
-#             "		<transition>\n",
-#             '			<source ref="id0"/>\n',
-#             '			<source ref="id1"/>\n',
-#             '			<label kind="guard" x="18" y="-34">clock2 == 5 &amp;&amp; clock == 5</label>\n',
-#             '			<label kind="synchronisation" x="18" y="-34">foo</label>\n',
-#             "		</transition>\n",
-#         ]
-#
-#         c = ClockConstraintExpression(["clock"], "=", 5, True)
-#         ci = ConstraintInsert(c)
-#         ci.patch_line(lines, 3, 0)
-#
-#         assert lines == lines_expected
-#
-#
-# class TestConstraintUpdate:
-#     """Unit tests for ConstraintUpdate."""
-#
-#     @staticmethod
-#     def test_constraint_update_init():
-#         """Test ConstraintUpdate()."""
-#         c = ClockConstraintExpression(["x"], ">", 10, False)
-#         cu = ConstraintUpdate(c, 13)
-#
-#         assert cu.constraint == c
-#         assert cu.old == 10
-#         assert cu.new == 13
-#
-#     @staticmethod
-#     def test_constraint_update_find_matching_constraint():
-#         """Test _find_matching_constraint method."""
-#         c = ClockConstraintExpression(["x"], ">", 10, False)
-#         cu = ConstraintUpdate(c, 13)
-#
-#         constraints1 = ["x &gt; 10"]
-#         constraints2 = ["x == 10", "x &gt; 10"]
-#         constraints3 = ["x &gt; 13"]
-#
-#         assert cu._find_matching_constraint(constraints1) == 0
-#         assert cu._find_matching_constraint(constraints2) == 1
-#         with pytest.raises(Exception):
-#             assert cu._find_matching_constraint(constraints3)
-#
-#     @staticmethod
-#     def test_constraint_update_patch_line_location():
-#         """Test patch_line method on locations."""
-#         lines = [
-#             '		<location id="id0" x="0" y="0">\n',
-#             '			<label kind="invariant" x="18" y="-34">x &lt; 5 &amp;&amp; y &lt; 5</label>\n',
-#             "		</location>\n",
-#         ]
-#
-#         lines_expected = [
-#             '		<location id="id0" x="0" y="0">\n',
-#             '			<label kind="invariant" x="18" y="-34">x &lt; 10 &amp;&amp; y &lt; 5</label>\n',
-#             "		</location>\n",
-#         ]
-#
-#         c = ClockConstraintExpression(["x"], "<", 5, False)
-#         cu = ConstraintUpdate(c, 10)  # Replace threshold 5 with 10.
-#         cu.patch_line(lines, 1)
-#
-#         assert lines == lines_expected
+class TestConstraintInsert:
+    """Unit tests for ConstraintInsert."""
+
+    @parametrize_with_cases("obj, new_label", cases=CaseIinit)
+    def test_constraint_insert_init(self, obj, new_label):
+        """Test ConstraintInsert()."""
+        ci = ConstraintInsert(obj, new_label)
+        assert ci.constraint == obj
+
+    @parametrize_with_cases("ci, lines, res, i, pi", cases=CaseIPatch)
+    def test_patch(self, ci, lines, res, i, pi):
+        ci.patch_line(lines, i, pi)
+        assert len(lines) == len(res)
+        for l, r in zip(lines, res):
+            assert l == r
+
+class TestConstraintUpdate:
+    """Unit tests for ConstraintUpdate."""
+
+    @parametrize_with_cases("c, update, old, new", cases=CaseUInit)
+    def test_constraint_update_init(self, c, update, old, new):
+        """Test ConstraintUpdate()."""
+
+        assert update.constraint == c
+        assert update.old == old
+        assert update.new == new
+
+    @parametrize_with_cases("cu, exprs, res", cases=CaseUFind)
+    def test_constraint_update_find(self, cu, exprs, res):
+        if res is not None:
+            assert cu._find_matching_constraint(exprs) == res
+        else:
+            with pytest.raises(Exception):
+                assert cu._find_matching_constraint(exprs)
+
+
+    @parametrize_with_cases("cu, lines, index, res", cases=CaseUPatch)
+    def test_constraint_update_patch(self, cu, lines, index, res):
+        cu.patch_line(lines, index)
+        assert lines == res

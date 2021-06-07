@@ -94,7 +94,7 @@ class TestConstraintCache:
         transition = template.graph._transitions[0]  # First template
         constraints = transition.guard.constraints
 
-        update = ConstraintUpdate(constraints[0], 15)  # type: ignore
+        update = ConstraintUpdate(constraints[0], "15") # type: ignore
 
         cp = ConstraintPatch(template, update, obj_ref=transition)
         cc.cache(cp)

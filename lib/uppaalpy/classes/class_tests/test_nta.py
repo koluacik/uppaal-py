@@ -1,6 +1,7 @@
 """Tests for NTA class."""
 
-# from uppaalpy.classes.class_tests.random_changers import random_scenario
+#TODO: reintroduce random changers
+
 from uppaalpy.classes.context import Context
 from uppaalpy.classes.nta import NTA
 from uppaalpy.classes.simplethings import Declaration, SystemDeclaration
@@ -119,9 +120,12 @@ class TestNTA:
         for i in range(len(inlines)):
             assert _dec_check(inlines[i], outlines[i])
 
-        path = testcase_dir + "nta_xml_files/test3.xml"
+    @staticmethod
+    def test_nta_flush_changes_no_changes():
+        """Test NTA.flush_constraint_changes() with no changes."""
+        path = testcase_dir + "nta_xml_files/small_nta.xml"
         nta = NTA.from_xml(path)
-        nta.to_file("/tmp/out.xml")
+        nta.flush_constraint_changes("/tmp/out.xml")
 
         with open(path) as inf, open("/tmp/out.xml") as outf:
             inlines, outlines = inf.readlines(), outf.readlines()
@@ -129,59 +133,16 @@ class TestNTA:
         for i in range(len(inlines)):
             assert _dec_check(inlines[i], outlines[i])
 
-        # path = testcase_dir + "nta_xml_files/test4.xml"
-        # nta = NTA.from_xml(path)
-        # nta.to_file("/tmp/out.xml")
+        path = testcase_dir + "nta_xml_files/big_nta.xml"
+        nta = NTA.from_xml(path)
+        nta.flush_constraint_changes("/tmp/out.xml")
 
-        # with open(path) as inf, open("/tmp/out.xml") as outf:
-        #     inlines, outlines = inf.readlines(), outf.readlines()
+        with open(path) as inf, open("/tmp/out.xml") as outf:
+            inlines, outlines = inf.readlines(), outf.readlines()
 
-        # for i in range(len(inlines)):
-        #     assert _dec_check(inlines[i], outlines[i])
+        for i in range(len(inlines)):
+            assert _dec_check(inlines[i], outlines[i])
 
-#     @staticmethod
-#     def test_nta_flush_changes_no_changes():
-#         """Test NTA.flush_constraint_changes() with no changes."""
-#         path = testcase_dir + "nta_xml_files/small_nta.xml"
-#         nta = NTA.from_xml(path)
-#         nta.flush_constraint_changes("/tmp/out.xml")
-# 
-#         with open(path) as inf, open("/tmp/out.xml") as outf:
-#             inlines, outlines = inf.readlines(), outf.readlines()
-# 
-#         for i in range(len(inlines)):
-#             assert _dec_check(inlines[i], outlines[i])
-# 
-#         path = testcase_dir + "nta_xml_files/big_nta.xml"
-#         nta = NTA.from_xml(path)
-#         nta.flush_constraint_changes("/tmp/out.xml")
-# 
-#         with open(path) as inf, open("/tmp/out.xml") as outf:
-#             inlines, outlines = inf.readlines(), outf.readlines()
-# 
-#         for i in range(len(inlines)):
-#             assert _dec_check(inlines[i], outlines[i])
-# 
-#         path = testcase_dir + "nta_xml_files/test3.xml"
-#         nta = NTA.from_xml(path)
-#         nta.flush_constraint_changes("/tmp/out.xml")
-# 
-#         with open(path) as inf, open("/tmp/out.xml") as outf:
-#             inlines, outlines = inf.readlines(), outf.readlines()
-# 
-#         for i in range(len(inlines)):
-#             assert _dec_check(inlines[i], outlines[i])
-# 
-#         path = testcase_dir + "nta_xml_files/test4.xml"
-#         nta = NTA.from_xml(path)
-#         nta.flush_constraint_changes("/tmp/out.xml")
-# 
-#         with open(path) as inf, open("/tmp/out.xml") as outf:
-#             inlines, outlines = inf.readlines(), outf.readlines()
-# 
-#         for i in range(len(inlines)):
-#             assert _dec_check(inlines[i], outlines[i])
-# 
 #     @staticmethod
 #     def test_nta_flush_changes1():
 #         """Test NTA.flush_constraint_changes() with no changes."""

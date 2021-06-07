@@ -6,8 +6,10 @@ from uppaalpy.classes.class_tests.test_label_cases import (
     CaseLabelFromElement,
     CaseLabelInit,
     CaseLabelToElement,
+    CaseUpdateLabelInit,
+    CaseUpdateResets,
 )
-from uppaalpy.classes.simplethings import Label
+from uppaalpy.classes.simplethings import Label, UpdateLabel
 
 
 class TestLabel:
@@ -30,4 +32,16 @@ class TestLabel:
 
 
 class TestUpdateLabel:
-    pass
+    @parametrize_with_cases("kind, val, pos, ctx, updates", cases=CaseUpdateLabelInit)
+    def test_init(self, kind, val, pos, ctx, updates):
+        l = UpdateLabel(kind, val, pos, ctx, updates)
+
+        assert l.value == val
+        assert l.kind == kind
+        assert l.pos == pos
+        if updates is not None:
+            assert l.updates == updates
+
+    @parametrize_with_cases("label, res", cases=CaseUpdateResets)
+    def test_resets(self, label, res):
+        assert label.get_resets() == res

@@ -288,7 +288,7 @@ class ConstraintUpdate(ConstraintChange):
     """Class for keeping track of a constraint update."""
 
     def __init__(
-        self, constraint: ClockConstraintExpression, new_threshold: int
+        self, constraint: ClockConstraintExpression, new_threshold: str
     ) -> None:
         """Initialize class with the new and the old thresholds."""
         super().__init__(constraint)
@@ -310,7 +310,7 @@ class ConstraintUpdate(ConstraintChange):
         constraints = constraint_line[start:end].split(" &amp;&amp; ")
         update_index = self._find_matching_constraint(constraints)
         constraints[update_index] = constraints[update_index].replace(
-            str(self.old), str(self.new)
+            self.old, self.new
         )
         lines[index] = (
             constraint_line[:start]
@@ -327,7 +327,7 @@ class ConstraintUpdate(ConstraintChange):
         comparison_string = (
             self.constraint.to_string(escape=True)
             .replace(" ", "")
-            .replace(str(self.constraint.threshold), str(self.old))
+            .replace(self.constraint.threshold, self.old)
         )
 
         for i, c in enumerate(constraints):
@@ -343,5 +343,5 @@ class ConstraintUpdate(ConstraintChange):
     def generate_new_constraint(self) -> ClockConstraintExpression:
         """Create a copy ClockConstraintExpression with the updated threshold."""
         res = copy(self.constraint)
-        res.threshold = str(self.new)
+        res.threshold = self.new
         return res
