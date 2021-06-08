@@ -21,6 +21,7 @@ pip install uppaal-py
 ## Features
 - Reading and writing UPPAAL files.
 - LP based path realizability analysis.
+- Finding set of furthest reachable locations with respect to a set of target (unsafe) locations.
 - Working with variables of type `int` and a subset of expressions involving `ints` for guards, invariants, and updates during transitions allowed in UPPAAL in addition to clocks during computations.
 
 ## TODO:
