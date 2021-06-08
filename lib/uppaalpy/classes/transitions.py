@@ -57,7 +57,7 @@ class Transition:
         self.select = kwargs.get("select")  # type: Optional[Label]
         self.guard = kwargs.get("guard")  # type: Optional[ConstraintLabel]
         self.synchronisation = kwargs.get("synchronisation")  # type: Optional[Label]
-        self.assignment = kwargs.get("assignment")  # type: Optional[Label]
+        self.assignment = kwargs.get("assignment")  # type: Optional[UpdateLabel]
         self.testcode = kwargs.get("testcode")  # type: Optional[Label]
         self.probability = kwargs.get("probability")  # type: Optional[Label]
         self.comments = kwargs.get("comments")  # type: Optional[Label]

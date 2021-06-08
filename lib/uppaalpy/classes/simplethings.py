@@ -229,6 +229,14 @@ class UpdateLabel(Label):
                     res.append(expr.clock)
         return res
 
+    def get_other_updates(self) -> List[e.UpdateExpression]:
+        """Return UpdateExpressions that are not clock resets."""
+        res = []
+        for expr in self.updates:
+            if not isinstance(expr, e.ClockResetExpression):
+                res.append(expr)
+        return res
+
 
 T = TypeVar("T", bound="SimpleField")
 

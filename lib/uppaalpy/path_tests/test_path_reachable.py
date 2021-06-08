@@ -12,12 +12,12 @@ def test_reachable_path(fp):
     assert p.path_realizable(path, True)[0] == True
 
 
-# @pytest.mark.parametrize("fp", not_reachable_nta())
-# def test_not_reachable_path(fp):
-#     """Test not realizable paths."""
-#     nta = read_file(fp)
-#     path = get_path_from_query_comment(nta)
-#     assert p.path_realizable(path)[0] == False
+@pytest.mark.parametrize("fp", not_reachable_nta())
+def test_not_reachable_path(fp):
+    """Test not realizable paths."""
+    nta = read_file(fp)
+    path = get_path_from_query_comment(nta)
+    assert p.path_realizable(path)[0] == False
 
 
 @pytest.mark.parametrize("fp", reachable_nta())
@@ -30,7 +30,7 @@ def test_reachable_path_with_ge_zero_clocks(fp):
         for j in range(0, i, 2):
             assert (
                 p.path_realizable_with_initial_valuation(
-                    path[i:j], True, icv_constants=[]
+                    path[j:i+1], True, icv_constants={}
                 )[0]
                 == True
             )
