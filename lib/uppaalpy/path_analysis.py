@@ -1,5 +1,6 @@
 """Functions for path analysis."""
-from typing import Dict, List, Optional, Tuple, Union, cast
+from collections import deque
+from typing import Dict, List, Optional, Set, Tuple, Union, cast
 from ortools.linear_solver import pywraplp
 from itertools import product
 from uppaalpy.classes.context import Context
@@ -8,6 +9,7 @@ from uppaalpy.classes.expr import ClockConstraintExpression
 from uppaalpy.classes.nodes import Location
 from uppaalpy.classes.templates import Template
 from uppaalpy.classes.transitions import Transition
+
 
 EPS = 2 ** (-10)
 
@@ -378,11 +380,6 @@ def find_all_semi_realizable_paths(
 
     DP: Dict[LI, Dict[LI, List[List[Path]]]] = {}
 
-    # For debug.
-    # c1 = 0
-    # c2 = 0
-    # c3 = 0
-
     # Create DP table.
     for i, i_obj in nodes.data("obj"):  # type: ignore
         DP[i] = {}
@@ -419,6 +416,88 @@ def find_all_semi_realizable_paths(
                         ):
                             DP[i][k][l].append(p3)
     return DP
+
+
+def check_dp(init: LI, target: LI, table: Dict[LI, Dict[LI, List[List[Path]]]]) -> bool:
+    pps = table[init][target]
+    for ps in pps:
+        for p in ps:
+            if path_realizable(p, True, True):
+                return True
+    return False
+
+
+def find_reachable_locations(
+    template: Template, table: Dict[LI, Dict[LI, List[List[Path]]]]
+) -> None:
+    """Mark the TAGraph of the given template for reachability.
+
+    Reachability of a location can be checked with
+    template.graph.nodes[("template_name", "location_id")]["tag"]
+    """
+    g = template.graph
+    tn = g.template_name
+
+    def f(x: str):
+        return (tn, x)
+
+    init = f(g.initial_location)
+
+    for node in g:
+        g.nodes[node]["tag"] = False
+    q = deque()  # type: deque[LI]
+    q.append(init)
+
+    while q:
+        n = q.popleft()
+        if check_dp(init, n, table):
+            g.nodes[n]["tag"] = True
+            for succ in g.nodes[n]:
+                q.append(succ)
+
+
+def reachability_analysis(
+    template: Template, table: Dict[LI, Dict[LI, List[List[Path]]]]
+) -> Set[LI]:
+    """Given a TA template and a path length limit, return reachable locations."""
+
+    res = set()
+
+    find_reachable_locations(template, table)
+
+    for node, is_tagged in template.graph.nodes.data("tagged"):  # type: ignore
+        if is_tagged:
+            res.add(node)
+
+    return res
+
+
+def furthest_reachable(
+    template: Template, target_set: Set[LI], table: Dict[LI, Dict[LI, List[List[Path]]]]
+) -> Set[LI]:
+
+    find_reachable_locations(template, table)
+    gp = template.graph.reverse()
+    q_act, q_alt = deque(target_set), deque()
+    flag = False
+    res: Set[LI] = set()
+
+    while q_act:
+        while q_act:
+            n = q_act.popleft()
+            if gp.nodes[n]["tag"]:
+                flag = True
+                res.add(n)
+            if not flag:
+                for succ in gp[n]:
+                    q_alt.append(succ)
+        if not flag:
+            # breaks from the outer loop if q_alt is empty or flag is True
+            q_act = q_alt
+            q_alt = deque()
+
+    return res
+
 
 
 def concatenate_paths(template, p1, p2):
